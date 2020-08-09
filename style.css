@@ -1,0 +1,49 @@
+svg {
+  border: solid 1px black;
+}
+
+path {
+  stroke: gray;
+  fill: gray;
+  stroke-linecap: square;
+  stroke-width: 5px;
+  fill-opacity: 80%;
+}
+
+text {
+  stroke: white;
+  fill: white;
+  fill-opacity: 80%;
+  font-size: 50px;
+  font-weight: lighter;
+}
+
+text.label {
+  stroke: gray;
+  fill: gray;
+  fill-opacity: 80%;
+  font-size: 40px;
+}
+
+rect {
+  stroke: steelblue;
+  fill: steelblue;
+  stroke-width: 2px;
+  fill-opacity: 80%;
+  /* rx: 3px; */
+  /* ry: 3px; */
+}
+
+polygon {
+  fill: orange;
+  stroke: orange;
+  fill-opacity: 80%;
+  stroke-width: 2px;
+}
+
+polygon.arrow-head {
+  fill: gray;
+  stroke: gray;
+  fill-opacity: 80%;
+  stroke-width: 2px;
+}
