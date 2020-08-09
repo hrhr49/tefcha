@@ -144,7 +144,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
   console.log(node.type);
 
   let prevChild: ASTNode = {type: 'none', lineno: -1};
-  node.children.forEach(child => {
+  node.children.forEach((child, idx) => {
     const {lineno} = child;
     switch (child.type) {
       case 'program':
@@ -182,8 +182,13 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
           throw tefchaError({lineno, src, msg: '"break" statement shoud be in loop or "case".'});
         }
         break;
+      case 'do':
+        if (idx + 1 >= node.children.length || node.children[idx + 1].type !== 'while') {
+          throw tefchaError({lineno, src, msg: 'cannot find corresponding keyword "while" to keyword "do".'});
+        }
+        break;
       default:
-        throw tefchaError({lineno, src, msg: `'ode type "${node.type}" is not implemented yet.`});
+        throw tefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
     }
     prevChild = child;
   });

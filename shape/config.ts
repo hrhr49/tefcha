@@ -37,7 +37,7 @@ const defaultConfig: Config = {
     //
     //       <------->
     //         stepX
-    stepX: 35,
+    stepX: 20,
 
     // +-----+
     // | aaa |
@@ -48,7 +48,7 @@ const defaultConfig: Config = {
     // +--+--+    v
     // | bbb |
     // +-----+
-    stepY: 50,
+    stepY: 30,
   },
   rect: {
     // +------------------------------------+
@@ -68,8 +68,8 @@ const defaultConfig: Config = {
     // +------------------------------------+
     // <------>                     <------->
     //   padX                          padX
-    padX: 5,
-    padY: 5,
+    padX: 12,
+    padY: 8,
   },
 
   diamond: {

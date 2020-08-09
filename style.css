@@ -3,47 +3,49 @@ svg {
 }
 
 path {
-  stroke: gray;
-  fill: gray;
+  stroke: dimgray;
+  fill: dimgray;
   stroke-linecap: square;
-  stroke-width: 5px;
-  fill-opacity: 80%;
+  stroke-width: 2px;
+  fill-opacity: 0%;
 }
 
 text {
   stroke: white;
   fill: white;
-  fill-opacity: 80%;
-  font-size: 50px;
-  font-weight: lighter;
+  fill-opacity: 100%;
+  font-size: 30px;
+  stroke-width: 0;
+  /* font-weight: lighter; */
+  /* font-family: monospace; */
 }
 
 text.label {
-  stroke: gray;
-  fill: gray;
-  fill-opacity: 80%;
-  font-size: 40px;
+  stroke: orange;
+  fill: orange;
+  fill-opacity: 100%;
+  font-size: 20px;
 }
 
 rect {
-  stroke: steelblue;
-  fill: steelblue;
+  stroke: mediumaquamarine;
+  fill: mediumaquamarine;
   stroke-width: 2px;
-  fill-opacity: 80%;
+  fill-opacity: 100%;
   /* rx: 3px; */
   /* ry: 3px; */
 }
 
 polygon {
-  fill: orange;
-  stroke: orange;
-  fill-opacity: 80%;
-  stroke-width: 2px;
+  fill: darkcyan;
+  stroke: darkcyan;
+  fill-opacity: 100%;
+  stroke-width: 0px;
 }
 
 polygon.arrow-head {
-  fill: gray;
-  stroke: gray;
-  fill-opacity: 80%;
-  stroke-width: 2px;
+  fill: dimgray;
+  stroke: dimgray;
+  fill-opacity: 100%;
+  stroke-width: 0px;
 }

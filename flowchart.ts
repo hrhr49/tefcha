@@ -2,8 +2,6 @@ import {ASTNode} from './parser'
 import {
   Shape,
   Group,
-  transShape,
-  createGroup,
 } from './shape/shape'
 import {Factory, MeasureTextFunc} from './shape/factory'
 import {Config} from './shape/config'
@@ -32,7 +30,7 @@ const createFlowchart = ({
   const shapeFactory = new Factory(config, measureText);
   const flowchart = createFlowchartSub(node, {config: config, factory: shapeFactory});
   const { shapeGroup } = flowchart;
-  transShape(
+  shapeFactory.trans(
     shapeGroup,
     - shapeGroup.minX + config.flowchart.marginX,
     - shapeGroup.minY + config.flowchart.marginY
@@ -71,37 +69,35 @@ const createFlowchartSub = (node: ASTNode, ctx: Context): Flowchart => {
           childIdx++;
         }
         const {shapeGroup} = createIfFlowchart(nodes, ctx);
-        transShape(shapeGroup, 0, y);
+        ctx.factory.trans(shapeGroup, 0, y);
         shapes.push(shapeGroup);
         y += shapeGroup.height;
         continue;
       }
       case 'while': {
-        const nodes: ASTNode[] = [];
-        while (
-          childIdx < node.children.length &&
-          ['if', 'elif', 'else'].includes(node.children[childIdx].type)
-        ) {
-          nodes.push(node.children[childIdx]);
-          childIdx++;
-        }
-        const {shapeGroup} = createIfFlowchart(nodes, ctx);
-        transShape(shapeGroup, 0, y);
+        const {shapeGroup} = createWhileFlowchart(child, ctx);
+        ctx.factory.trans(shapeGroup, 0, y);
         shapes.push(shapeGroup);
         y += shapeGroup.height;
         break;
       }
       case 'do': {
-        break;
+        let doNode = child;
+        let whileNode = node.children[childIdx + 1];
+        const {shapeGroup} = createDoWhileFlowchart(doNode, whileNode, ctx);
+        ctx.factory.trans(shapeGroup, 0, y);
+        shapes.push(shapeGroup);
+        y += shapeGroup.height;
+        childIdx += 2;
+        continue;
       }
     }
     childIdx++;
   }
-  const flowchart: Flowchart = {
+  return {
     type: 'flowchart',
-    shapeGroup: createGroup({x: 0, y: 0, children: shapes}),
+    shapeGroup: ctx.factory.group({x: 0, y: 0, children: shapes}),
   };
-  return flowchart;
 };
 
 const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
@@ -120,7 +116,7 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
   if (nodes.length === 0) {
     return {
       type: 'flowchart',
-      shapeGroup: createGroup({x: 0, y: 0, children: []}),
+      shapeGroup: ctx.factory.group({x: 0, y: 0, children: []}),
     };
   } else if (nodes[0].type === 'else') {
     return createFlowchartSub(nodes[0], ctx);
@@ -136,11 +132,11 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
 
   const ifNode = nodes[0];
   const cond = ctx.factory.diamond({text: ifNode.content});
-  transShape(cond, 0, y);
+  ctx.factory.trans(cond, 0, y);
   shapes.push(cond);
 
   shapes.push(
-    transShape(
+    ctx.factory.trans(
       ctx.factory.text({
         text: ctx.config.diamond.yesText,
         className: 'label',
@@ -150,7 +146,7 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
     )
   );
   shapes.push(
-    transShape(
+    ctx.factory.trans(
       ctx.factory.text({
         text: ctx.config.diamond.noText,
         className: 'label',
@@ -161,12 +157,12 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
   );
 
   const {shapeGroup: ifShapeGroup} = createFlowchartSub(ifNode, ctx);
-  transShape(ifShapeGroup, 0, cond.y + cond.maxY);
+  ctx.factory.trans(ifShapeGroup, 0, cond.y + cond.maxY);
   shapes.push(ifShapeGroup);
 
   // create else part flowchart
   const {shapeGroup: elseShapeGroup} = createIfFlowchart(nodes.slice(1), ctx);
-  transShape(
+  ctx.factory.trans(
     elseShapeGroup,
     Math.max(cond.width / 2, ifShapeGroup.maxX) + ctx.config.flowchart.stepX - elseShapeGroup.minX,
     y + cond.height / 2,
@@ -203,14 +199,157 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
 
   shapes.push(mergeHline);
 
-  const flowchart: Flowchart = {
+  return {
     type: 'flowchart',
-    shapeGroup: createGroup({x: 0, y: 0, children: shapes}),
+    shapeGroup: ctx.factory.group({x: 0, y: 0, children: shapes}),
   };
-  console.log(shapes)
-  return flowchart;
 }
 
+const createWhileFlowchart = (node: ASTNode, ctx: Context): Flowchart => {
+  //                   |
+  //  loop back path   |
+  //       +---------->|
+  //       |           |
+  //       |       _.-' '-._
+  //       |      '-._   _.-'----+
+  //       |          '+'        |
+  //       |           |         |
+  //       |  block +--+--+      |  loop exit path
+  //       |        |     |      |
+  //       |        +--+--+      |
+  //       |           |         |
+  //       +-----------+         |
+  //                             |
+  //                             |
+  //                   +---------+
+  //                   |
+
+  console.assert(node.type === 'while');
+  const shapes = [];
+  let y = 0;
+
+  shapes.push(ctx.factory.vline(
+    {x: 0, y, step: ctx.config.flowchart.stepY}
+  ));
+  y += ctx.config.flowchart.stepY;
+
+  const cond = ctx.factory.diamond({text: node.content});
+  shapes.push(cond);
+  ctx.factory.trans(cond, 0, y);
+  y += cond.height;
+
+  const {shapeGroup: blockShapeGroup} = createFlowchartSub(node, ctx);
+  ctx.factory.trans(blockShapeGroup, 0, y);
+  shapes.push(blockShapeGroup);
+  y += blockShapeGroup.height
+
+  shapes.push(ctx.factory.vline(
+    {x: 0, y, step: ctx.config.flowchart.stepY}
+  ));
+  y += ctx.config.flowchart.stepY;
+
+  // loop back path
+  shapes.push(ctx.factory.path({
+    x: 0, y,
+    cmds: [
+      ['h', - Math.max(cond.width / 2, - blockShapeGroup.minX) - ctx.config.flowchart.stepX],
+      ['v', cond.y - ctx.config.flowchart.stepY / 2 - y],
+      ['h', Math.max(cond.width / 2, - blockShapeGroup.minX) + ctx.config.flowchart.stepX],
+    ],
+    isArrow: true,
+  }));
+
+  // loop exit path
+  shapes.push(ctx.factory.path({
+    x: cond.width / 2, y: cond.y + cond.height / 2,
+    cmds: [
+      ['h', Math.max(0, blockShapeGroup.maxX - cond.width / 2) + ctx.config.flowchart.stepX],
+      ['v', ctx.config.flowchart.stepX + y - cond.y - cond.height / 2],
+      ['h', - Math.max(cond.width / 2, blockShapeGroup.maxX) - ctx.config.flowchart.stepX],
+    ],
+  }));
+
+  return {
+    type: 'flowchart',
+    shapeGroup: ctx.factory.group({x: 0, y: 0, children: shapes}),
+  };
+}
+
+const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, ctx: Context): Flowchart => {
+  //
+  //                   |
+  //  loop back path   |
+  //       +---------->|
+  //       |           |
+  //       |  block +--+--+
+  //       |        |     |
+  //       |        +--+--+
+  //       |           |
+  //       |       _.-' '-._
+  //       |      '-._   _.-'----+
+  //       |          '+'        | loop exit path
+  //       |           |         |
+  //       +-----------+         |
+  //                             |
+  //                   +---------+
+  //                   |
+
+  console.assert(doNode.type === 'do');
+  console.assert(doNode.type === 'while');
+  const shapes = [];
+  let y = 0;
+
+  shapes.push(ctx.factory.vline(
+    {x: 0, y, step: ctx.config.flowchart.stepY}
+  ));
+  y += ctx.config.flowchart.stepY;
+
+  const {shapeGroup: blockShapeGroup} = createFlowchartSub(doNode, ctx);
+  ctx.factory.trans(blockShapeGroup, 0, y);
+  shapes.push(blockShapeGroup);
+  y += blockShapeGroup.height
+
+  shapes.push(ctx.factory.vline(
+    {x: 0, y, step: ctx.config.flowchart.stepY}
+  ));
+  y += ctx.config.flowchart.stepY;
+
+  const cond = ctx.factory.diamond({text: whileNode.content});
+  shapes.push(cond);
+  ctx.factory.trans(cond, 0, y);
+  y += cond.height;
+
+  shapes.push(ctx.factory.vline(
+    {x: 0, y, step: ctx.config.flowchart.stepY}
+  ));
+  y += ctx.config.flowchart.stepY;
+
+  // loop back path
+  shapes.push(ctx.factory.path({
+    x: 0, y,
+    cmds: [
+      ['h', - Math.max(cond.width / 2, - blockShapeGroup.minX) - ctx.config.flowchart.stepX],
+      ['v', blockShapeGroup.y + blockShapeGroup.minY + ctx.config.flowchart.stepY / 2 - y],
+      ['h', Math.max(cond.width / 2, - blockShapeGroup.minX) + ctx.config.flowchart.stepX],
+    ],
+    isArrow: true,
+  }));
+
+  // loop exit path
+  shapes.push(ctx.factory.path({
+    x: cond.width / 2, y: cond.y + cond.height / 2,
+    cmds: [
+      ['h', Math.max(0, blockShapeGroup.maxX - cond.width / 2) + ctx.config.flowchart.stepX],
+      ['v', ctx.config.flowchart.stepX + y - cond.y - cond.height / 2],
+      ['h', - Math.max(cond.width / 2, blockShapeGroup.maxX) - ctx.config.flowchart.stepX],
+    ],
+  }));
+
+  return {
+    type: 'flowchart',
+    shapeGroup: ctx.factory.group({x: 0, y: 0, children: shapes}),
+  };
+}
 
 export {
   createFlowchart,

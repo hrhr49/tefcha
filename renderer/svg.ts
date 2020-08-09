@@ -112,8 +112,8 @@ const render = (src: string) => {
        {
          id: 'arrow-head',
          markerUnits: 'userSpaceOnUse',
-         markerWidth: '30',
-         markerHeight: '60',
+         markerWidth: '20',
+         markerHeight: '40',
          viewBox: '0 0 10 10',
          refX: '10',
          refY: '5',
