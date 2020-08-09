@@ -1,8 +1,11 @@
 import {parse} from '../parser'
-import {Shape} from '../shape/shape'
-import {TextSize, MeasureTextFunc} from '../shape/factory'
+import {
+  TextSize,
+  MeasureTextFunc,
+  Shape
+} from '../shape'
 import {createFlowchart} from '../flowchart'
-import {defaultConfig} from '../shape/config'
+import {defaultConfig, Config} from '../config'
 
 const el = (
   tagName: string,
@@ -39,8 +42,6 @@ const measureText: MeasureTextFunc =
   return {width, height};
 }
 
-const fontHeight = measureText('A').height;
-
 
 interface Layers {
   textLayer: SVGElement;
@@ -48,36 +49,38 @@ interface Layers {
   pathLayer: SVGElement;
 }
 
-interface RenderFlowchartParams {
-  layers: Layers;
-  shape: Shape;
-  offsetX?: number;
-  offsetY?: number;
-}
-
 const renderShape = ({
   layers,
   shape,
+  config,
   offsetX = 0,
   offsetY = 0,
-}: RenderFlowchartParams): void => {
+}: {
+  layers: Layers;
+  shape: Shape;
+  config: Config;
+  offsetX?: number;
+  offsetY?: number;
+}): void => {
   const x = offsetX + shape.x;
   const y = offsetY + shape.y;
-  const {width, height, className} = shape;
+  const {width, height} = shape;
 
   switch (shape.type) {
     case 'group':
-      shape.children.forEach(child => renderShape({layers, shape: child, offsetX: x, offsetY: y}));
+      shape.children.forEach(child => renderShape({layers, config, shape: child, offsetX: x, offsetY: y}));
       break;
     case 'text':
-      layers.textLayer.append(createTextSVGElement(
-        shape.content,
-        {
-          x,
-          y: y + fontHeight / 2,
-          'dominant-baseline': 'central',
-          className,
-        }));
+      layers.textLayer.append(
+        createTextSVGElement(
+          shape.content,
+          {
+            x,
+            y: y + measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).height / 2,
+            'dominant-baseline': 'central',
+            ...config.text.attrs,
+          })
+      );
       break;
     case 'path':
       const m = `M ${x} ${y}`;
@@ -87,16 +90,16 @@ const renderShape = ({
         d: `${m} ${l}`,
         ...(shape.isArrow ?
           {'marker-end': 'url(#arrow-head)'} : {}),
-        className,
+        ...config.path.attrs,
       }));
       break;
     case 'rect':
-      layers.nodeLayer.append(el('rect', {x, y, width, height, className}));
+      layers.nodeLayer.append(el('rect', {x, y, width, height, ...config.rect.attrs}));
       break;
     case 'diamond':
       layers.nodeLayer.append(el('polygon', {
         points: `${x + width / 2},${y}, ${x + width},${y + height / 2} ${x + width / 2},${y + height} ${x},${y + height / 2}`,
-        className,
+        ...config.diamond.attrs,
       }));
       break;
     case 'point':
@@ -105,7 +108,8 @@ const renderShape = ({
   }
 };
 
-const render = (src: string) => {
+const render = (src: string, config?: Config) => {
+  config = config || defaultConfig;
   const svg = el('svg');
   const arrowHeadDef = el('defs', null,
     el('marker',
@@ -123,6 +127,7 @@ const render = (src: string) => {
         {
           points: '0,0 0,10 10,5',
           'class': 'arrow-head',
+          ...config.arrowHead.attrs,
         }
        )
     )
@@ -134,7 +139,7 @@ const render = (src: string) => {
 
   const flowchart = createFlowchart({
     node: parse(src),
-    config: defaultConfig,
+    config,
     measureText: measureText,
   });
 
@@ -145,14 +150,15 @@ const render = (src: string) => {
       textLayer,
     },
     shape: flowchart.shapeGroup,
+    config,
   });
 
   svg.append(pathLayer);
   svg.append(nodeLayer);
   svg.append(textLayer);
 
-  svg.setAttribute('width', (flowchart.shapeGroup.width + 100).toString());
-  svg.setAttribute('height', (flowchart.shapeGroup.height + 100).toString());
+  svg.setAttribute('width', (flowchart.shapeGroup.width + config.flowchart.marginX * 2).toString());
+  svg.setAttribute('height', (flowchart.shapeGroup.height + config.flowchart.marginY * 2).toString());
   return svg;
 };
 

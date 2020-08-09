@@ -1,10 +1,11 @@
 import {ASTNode} from './parser'
 import {
+  Factory,
+  MeasureTextFunc,
   Shape,
   Group,
-} from './shape/shape'
-import {Factory, MeasureTextFunc} from './shape/factory'
-import {Config} from './shape/config'
+} from './shape'
+import {Config} from './config'
 
 interface Flowchart {
   type: 'flowchart';
@@ -137,19 +138,17 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
 
   shapes.push(
     ctx.factory.trans(
-      ctx.factory.text({
-        text: ctx.config.diamond.yesText,
-        className: 'label',
+      ctx.factory.label({
+        text: ctx.config.label.yesText,
       }),
       ctx.config.diamond.labelMarginX,
-      cond.height  + ctx.config.diamond.labelMarginY,
+      cond.height + ctx.config.diamond.labelMarginY,
     )
   );
   shapes.push(
     ctx.factory.trans(
-      ctx.factory.text({
-        text: ctx.config.diamond.noText,
-        className: 'label',
+      ctx.factory.label({
+        text: ctx.config.label.noText,
       }),
       cond.width / 2 + ctx.config.diamond.labelMarginX,
       cond.height / 2 + ctx.config.diamond.labelMarginY,
