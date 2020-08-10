@@ -75,7 +75,7 @@ const defaultConfig: Config = {
     //
     //       <------->
     //         stepX
-    stepX: 20,
+    stepX: 30,
 
     // +-----+
     // | aaa |
@@ -134,7 +134,7 @@ const defaultConfig: Config = {
     aspectRatio: 3 / 4,
 
     labelMarginX: 5,
-    labelMarginY: 30,
+    labelMarginY: 25,
 
     attrs: {
       'stroke': 'black',
@@ -176,14 +176,15 @@ const defaultConfig: Config = {
   },
 
   label: {
-    yesText: 'yes',
-    noText: 'no',
+    yesText: 'y',
+    noText: 'n',
 
     attrs: {
       'stroke': 'black',
       'fill': 'black',
       'fill-opacity': '100%',
       'font-size': '20px',
+      'font-weight': 'lighter',
     }
   },
 };

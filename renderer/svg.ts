@@ -78,7 +78,7 @@ const renderShape = ({
             x,
             y: y + measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).height / 2,
             'dominant-baseline': 'central',
-            ...config.text.attrs,
+            ...(shape.isLabel ? config.label.attrs : config.text.attrs),
           })
       );
       break;

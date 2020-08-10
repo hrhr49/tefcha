@@ -1,3 +1,5 @@
+import {Config} from './config'
+
 interface BaseShape {
   x: number;
   y: number;
@@ -45,8 +47,6 @@ interface Group extends BaseShape {
 
 type Shape = Point | Path | Text | Rect | Diamond | Group;
 
-import {Config} from '../config'
-
 interface TextSize {
   width: number;
   height: number;
@@ -79,7 +79,7 @@ class Factory {
   }
 
   vline = ({x, y, step, isArrow = false}:
-    {x: number; y: number; step: number; isArrow?: boolean;}): Shape => {
+    {x: number; y: number; step: number; isArrow?: boolean;}): Path => {
     return {
       ...this.baseShape(),
       type: 'path',
@@ -95,7 +95,7 @@ class Factory {
   }
 
   hline = ({x, y, step, isArrow = false}:
-    {x: number; y: number; step: number; isArrow?: boolean;}): Shape => {
+    {x: number; y: number; step: number; isArrow?: boolean;}): Path => {
     return {
       ...this.baseShape(),
       type: 'path',
@@ -111,7 +111,7 @@ class Factory {
   }
 
   path = ({x, y, cmds, isArrow = false}:
-    {x: number; y: number; cmds: PathCmd[]; isArrow?: boolean;}): Shape => {
+    {x: number; y: number; cmds: PathCmd[]; isArrow?: boolean;}): Path => {
     let px = 0;
     let py = 0;
     let minX = 0;
@@ -156,14 +156,14 @@ class Factory {
     };
   }
 
-  text = ({text}: {text: string}): Shape => {
+  text = ({text}: {text: string}): Text => {
     return {
       ...this._text({text, attrs: this.config.text.attrs}),
       isLabel: false,
     };
   }
 
-  label = ({text}: {text: string}): Shape => {
+  label = ({text}: {text: string}): Text => {
     return {
       ...this._text({text, attrs: this.config.label.attrs}),
       isLabel: true,
@@ -171,7 +171,7 @@ class Factory {
   }
 
   point = ({x, y}:
-    {x: number; y: number;}): Shape => {
+    {x: number; y: number;}): Point => {
     return {
       ...this.baseShape(),
       type: 'point',
@@ -208,7 +208,7 @@ class Factory {
         x: number;
         y: number;
       }
-  ): Shape => {
+  ): Group => {
     const textSize = this.measureText(text, this.config.text.attrs);
     let width: number;
     let height: number;
