@@ -172,7 +172,8 @@ const createFlowchartSub = (node: ASTNode, ctx: Context): Flowchart => {
 };
 
 const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
-  //                 _
+  //                 |
+  //                 |
   //             _.-' '-._ branchHline
   //            '-._   _.-'----+
   //                '+'        |
@@ -287,23 +288,26 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
 }
 
 const createWhileFlowchart = (node: ASTNode, ctx: Context): Flowchart => {
-  //                   |
-  //  loop back path   |
-  //       +---------->|
-  //       |           |
-  //       |       _.-' '-._
-  //       |      '-._   _.-'----+
-  //       |          '+'        |
-  //       |           |         |
-  //       |  block +--+--+      |  loop exit path
-  //       |        |     |      |
-  //       |        +--+--+      |
-  //       |           |         |
-  //       +-----------+         |
-  //                             |
-  //                             |
-  //                   +---------+
-  //                   |
+  //                     |
+  //  loop back path     |
+  //       +------------>|
+  //       |             |
+  //       |         _.-' '-._
+  //       |        '-._   _.-'-----------+
+  //       |            '+'               |
+  //       |             |                |
+  //       |    block +--+--+             |  loop exit path
+  //       |          |     | break       |
+  //       |          |     +------------>|
+  //       | continue |     |             |
+  //       |<---------+     |             |
+  //       |          |     |             |
+  //       |          +--+--+             |
+  //       |             |                |
+  //       +-------------+                |
+  //                                      |
+  //                     +----------------+
+  //                     |
 
   console.assert(node.type === 'while');
   const shapes = [];
@@ -408,16 +412,23 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, ctx: Contex
   //       +---------->|
   //       |           |
   //       |  block +--+--+
-  //       |        |     |
-  //       |        +--+--+
-  //       |           |
-  //       |       _.-' '-._
-  //       |      '-._   _.-'----+
-  //       |          '+'        | loop exit path
-  //       |           |         |
-  //       +-----------+         |
-  //                             |
-  //                   +---------+
+  //       |        |     | break
+  //       |        |     +------------------+
+  //       |        |     |                  |
+  //       |        |     | continue         |
+  //       |        |     +---+              |
+  //       |        |     |   |              |
+  //       |        +--+--+   | skip path    |
+  //       |           |      |              |
+  //       |           |<-----+              |
+  //       |           |                     |
+  //       |       _.-' '-._                 |
+  //       |      '-._   _.-'--------------->|
+  //       |          '+'                    | loop exit path
+  //       |           |                     |
+  //       +-----------+                     |
+  //                                         |
+  //                   +---------------------+
   //                   |
 
   console.assert(doNode.type === 'do');
@@ -492,7 +503,7 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, ctx: Contex
 
     loopBackPathX = Math.min(-cond.width / 2, blockFlowchart.shapeGroup.minX) - ctx.config.flowchart.stepX;
 
-    // draw loopback
+    // loop back path
     shapes.push(ctx.factory.path({
       x: 0, y,
       cmds: [
