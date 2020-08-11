@@ -31,7 +31,7 @@ const INDENT_KEYWORDS = [
   'if', 'else', 'elif', 'while', 'for', 'do',
   'switch', 'case'
 ];
-const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break'];
+const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break', 'pass'];
 
 // indent need to be this string.
 const INDENT_STR = '  ';
@@ -186,6 +186,8 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         if (idx + 1 >= node.children.length || node.children[idx + 1].type !== 'while') {
           throw tefchaError({lineno, src, msg: 'cannot find corresponding keyword "while" to keyword "do".'});
         }
+        break;
+      case 'pass':
         break;
       default:
         throw tefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});

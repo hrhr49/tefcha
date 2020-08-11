@@ -116,8 +116,8 @@ const render = (src: string, config?: Config) => {
        {
          id: 'arrow-head',
          markerUnits: 'userSpaceOnUse',
-         markerWidth: '20',
-         markerHeight: '40',
+         markerWidth: `${config.arrowHead.size}`,
+         markerHeight: `${config.arrowHead.size * 2 }`,
          viewBox: '0 0 10 10',
          refX: '10',
          refY: '5',

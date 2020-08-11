@@ -17,6 +17,7 @@ interface Config {
   };
 
   arrowHead: {
+    size: number;
     attrs: any;
   };
 
@@ -133,8 +134,8 @@ const defaultConfig: Config = {
 
     aspectRatio: 3 / 4,
 
-    labelMarginX: 5,
-    labelMarginY: 25,
+    labelMarginX: 1,
+    labelMarginY: 0,
 
     attrs: {
       'stroke': 'black',
@@ -151,10 +152,12 @@ const defaultConfig: Config = {
       'stroke-linecap': 'square',
       'stroke-width': '3px',
       'fill-opacity': '0%',
+      'stroke-opacity': '100%',
     },
   },
 
   arrowHead: {
+    size: 15,
     attrs: {
       'stroke': 'black',
       'fill': 'black',

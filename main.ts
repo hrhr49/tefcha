@@ -9,10 +9,6 @@ a
 
 String.raw`
 if a
-`,
-
-String.raw`
-if a
   b
 `,
 
@@ -41,6 +37,7 @@ else
 
 String.raw`
 while a
+  pass
 `,
 
 String.raw`
@@ -59,6 +56,12 @@ while a
 `,
 
 String.raw`
+while aaaaaa
+  if a
+    break
+`,
+
+String.raw`
 while a
   if b
     break
@@ -71,6 +74,7 @@ while a
 
 String.raw`
 do
+  pass
 while c
 `,
 
@@ -103,6 +107,7 @@ String.raw`
 do
   if a
     break
+  a
 while bb
 `,
 
@@ -117,6 +122,45 @@ do
   else
     continue
 while bb
+`,
+
+String.raw`
+while a
+  if a
+    pass
+  else
+    break
+  if b
+    if e
+      break
+  else
+    continue
+  if b
+    pass
+  else
+    break
+`,
+
+String.raw`
+do
+  if a
+    break
+  elif b
+    break
+  elif c
+    break
+  else
+    break
+while bb
+`,
+
+String.raw`
+do
+  if a
+    break
+  elif d
+    d
+while d
 `,
 ];
 
