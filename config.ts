@@ -1,4 +1,9 @@
 interface Config {
+  src: {
+    indentStr: string;
+    commentStr: string;
+  };
+
   flowchart: {
     marginX: number;
     marginY: number;
@@ -39,7 +44,15 @@ interface Config {
     noText: string;
   }
 }
+
 const defaultConfig: Config = {
+  src: {
+    // indent need to be this string.
+    indentStr: '  ',
+    // line starts with this character is skipped by parser.
+    commentStr: '#',
+  },
+
   flowchart: {
     //                       svg width
     //          <------------------------------------>
@@ -60,8 +73,8 @@ const defaultConfig: Config = {
     //        v +------------------------------------+
     //          <------>                     <------->
     //           marginX                      marginX
-    marginX: 50,
-    marginY: 50,
+    marginX: 35,
+    marginY: 35,
 
     // branch1        branch2
     // +-----+        +-----+
@@ -76,7 +89,7 @@ const defaultConfig: Config = {
     //
     //       <------->
     //         stepX
-    stepX: 30,
+    stepX: 24,
 
     // +-----+
     // | aaa |
@@ -87,8 +100,9 @@ const defaultConfig: Config = {
     // +--+--+    v
     // | bbb |
     // +-----+
-    stepY: 30,
+    stepY: 24,
   },
+
   rect: {
     // +------------------------------------+
     // |                                    | ^
@@ -113,7 +127,7 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': 'black',
       'fill': 'white',
-      'stroke-width': '3px',
+      'stroke-width': '2px',
       'fill-opacity': '0%',
     },
   },
@@ -141,7 +155,7 @@ const defaultConfig: Config = {
       'stroke': 'black',
       'fill': 'white',
       'fill-opacity': '0%',
-      'stroke-width': '3px',
+      'stroke-width': '2px',
     },
   },
 
@@ -150,7 +164,7 @@ const defaultConfig: Config = {
       'stroke': 'black',
       'fill': 'black',
       'stroke-linecap': 'square',
-      'stroke-width': '3px',
+      'stroke-width': '2px',
       'fill-opacity': '0%',
       'stroke-opacity': '100%',
     },
@@ -171,25 +185,70 @@ const defaultConfig: Config = {
       'stroke': 'black',
       'fill': 'black',
       'fill-opacity': '100%',
-      'font-size': '30px',
+      'font-size': '14px',
       'stroke-width': '0',
       /* font-weight': 'lighter', */
       /* font-family': 'monospace', */
-    }
+    },
   },
 
   label: {
-    yesText: 'y',
-    noText: 'n',
+    yesText: 'Y',
+    noText: 'N',
 
     attrs: {
       'stroke': 'black',
       'fill': 'black',
       'fill-opacity': '100%',
-      'font-size': '20px',
+      'font-size': '10px',
       'font-weight': 'lighter',
-    }
+    },
   },
 };
 
-export {Config, defaultConfig}
+const mergeDefaultConfig = (config: any): Config => {
+  if(!config) return defaultConfig;
+  return {
+    src: {
+      ...defaultConfig.src,
+      ...(config.src || {}),
+    },
+
+    flowchart: {
+      ...defaultConfig.flowchart,
+      ...(config.flowchart || {}),
+    },
+
+    rect: {
+      ...defaultConfig.rect,
+      ...(config.rect || {}),
+    },
+
+    diamond: {
+      ...defaultConfig.diamond,
+      ...(config.diamond || {}),
+    },
+
+    path: {
+      ...defaultConfig.path,
+      ...(config.path || {}),
+    },
+
+    arrowHead: {
+      ...defaultConfig.arrowHead,
+      ...(config.arrowHead || {}),
+    },
+
+    text: {
+      ...defaultConfig.text,
+      ...(config.text || {}),
+    },
+
+    label: {
+      ...defaultConfig.label,
+      ...(config.label || {}),
+    },
+  }
+};
+
+export {Config, defaultConfig, mergeDefaultConfig}

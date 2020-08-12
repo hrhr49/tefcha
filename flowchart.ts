@@ -26,7 +26,7 @@ interface Context {
   };
 }
 
-let IS_DEBUG = true
+let IS_DEBUG = false
 const assert = (tgt: any): void => IS_DEBUG && console.assert(tgt);
 
 const transFlowchart = (flowchart: Flowchart, ctx: Context, x: number, y: number): Flowchart => {
@@ -394,12 +394,12 @@ const createIfFlowchart = (nodes: ASTNode[], ctx: Context): Flowchart => {
           x: elseFlowchart.shapeGroup.x,
           y: mergeY,
           step: - elseFlowchart.shapeGroup.x + cond.x,
-          isArrow: true,
+          isArrow: !!ifFlowchart.endPoint,
         });
         shapes.push(mergeHline);
         ctx.factory.trans(elseEndPoint, 0, mergeY - elseEndPoint.y);
-        console.log({mergeY});
-        console.log({elseEndPoint});
+        // console.log({mergeY});
+        // console.log({elseEndPoint});
       }
     } else {
       assert(noPositionType === 'bottom');

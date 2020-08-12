@@ -1,7 +1,7 @@
 {
   "name": "tefcha",
   "version": "0.0.1",
-  "description": "",
+  "description": "Text to Flowchart.",
   "main": "index.js",
   "bin": {
     "tefcha": "bin/cli.js"
@@ -15,12 +15,16 @@
     }
   ],
   "dependencies": {
-    "commander": "^5.1.0"
+    "chalk": "^4.1.0",
+    "commander": "^5.1.0",
+    "puppeteer": "^5.2.1"
   },
   "devDependencies": {
+    "@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
     "@types/jest": "^26.0.9",
     "@types/node": "^14.0.23",
+    "@types/puppeteer": "^3.0.1",
     "jest": "^26.2.2",
     "npm-run-all": "^4.1.5",
     "parcel-bundler": "^1.12.4",
@@ -31,10 +35,12 @@
   "scripts": {
     "watch": "parcel index.html --open",
     "build-cli": "parcel build --target node bin/cli.ts --out-dir bin --out-file cli.js",
+    "build-browser": "parcel build --target browser browser/main.ts --out-dir dist --out-file tefcha.js",
     "ins": "npm uninstall -g tefcha && npm install -g",
-    "deploy": "npm-run-all build-cli ins"
+    "deploy": "npm-run-all build-cli ins",
+    "build": "npm-run-all build-cli build-browser"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["flowchart"],
+  "author": "hrhr49",
   "license": "ISC"
 }

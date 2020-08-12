@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+  themes:
+  <button id="default">default</button>
+  <button id="green">green</button>
+  <button id="blue">blue</button>
+  save: 
+  <button id="save-png">PNG</button>
+  <button id="save-svg">SVG</button>
+  <div style="display: flex;">
+    <div style="display: flex; flex: row">
+      <textarea id="text" cols="80" rows="30">
+# This is a example.
+# NOTE:
+#   The line starts with "#" is comment.
+#   "\n" is newline.
+#   All indent must be "  " (2 whitespaces).
+
+Start\nFizzBuzz!
+i = 1
+
+while i <= 100
+  if i % 15 == 0
+    print("FizzBuzz")
+  elif i % 3 == 0
+    print("Fizz")
+  elif i % 5 == 0
+    print("Buzz")
+  else
+    print(i)
+End
+      </textarea>
+    </div>
+    <div>
+      <div id="flowchart" class="tefcha"></div>
+      <div>
+        <code>
+        <pre id="errMsg">
+        </pre>
+      </code>
+      </div>
+      <div id="errMsg" class="errMsg"></div>
+    </div>
+  </div>
+  <script src="../dist/tefcha.js"></script>
+  <script>
+    var text = document.getElementById('text');
+    var flowchart = document.getElementById('flowchart');
+    var errMsg = document.getElementById('errMsg');
+    var defaultConfig = {};
+    var greenConfig = {
+      text: {
+        attrs: {
+          'font-size': '14px',
+          'stroke': 'white',
+          'fill': 'white',
+          'fill-opacity': '100%',
+          'stroke-width': '0px',
+        },
+      },
+      label: {
+        attrs: {
+          'font-size': '10px',
+          'stroke': 'seagreen',
+          'fill': 'seagreen',
+          'fill-opacity': '100%',
+        },
+      },
+      path: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill': 'dimgray',
+          'fill-opacity': '0%',
+        },
+      },
+      rect: {
+        attrs: {
+          'stroke': 'darkcyan',
+          'stroke-width': '2px',
+          'fill': 'darkcyan',
+          'fill-opacity': '100%',
+          'rx': '3px',
+          'ry': '3px',
+        },
+      },
+      diamond: {
+        attrs: {
+          'stroke': 'seagreen',
+          'stroke-width': '2px',
+          'fill': 'seagreen',
+          'fill-opacity': '100%',
+        },
+      },
+      arrowHead: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill': 'dimgray',
+          'fill-opacity': '100%',
+        },
+      },
+    };
+    var blueConfig = {
+      text: {
+        attrs: {
+          'font-size': '14px',
+          'stroke': 'white',
+          'fill': 'white',
+          'fill-opacity': '100%',
+          'stroke-width': '0px',
+        },
+      },
+      label: {
+        attrs: {
+          'font-size': '10px',
+          'stroke': 'royalblue',
+          'fill': 'royalblue',
+          'fill-opacity': '100%',
+        },
+      },
+      path: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill': 'dimgray',
+          'fill-opacity': '0%',
+        },
+      },
+      rect: {
+        attrs: {
+          'stroke': 'steelblue',
+          'stroke-width': '2px',
+          'fill': 'steelblue',
+          'fill-opacity': '100%',
+          'rx': '3px',
+          'ry': '3px',
+        },
+      },
+      diamond: {
+        attrs: {
+          'stroke': 'royalblue',
+          'stroke-width': '2px',
+          'fill': 'royalblue',
+          'fill-opacity': '100%',
+        },
+      },
+      arrowHead: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill': 'dimgray',
+          'fill-opacity': '100%',
+        },
+      },
+    };
+    var config = defaultConfig;
+    var update = () => {
+      var src = text.value;
+      flowchart.textContent = src;
+      try {
+        tefcha.initialize(config);
+        errMsg.textContent = '';
+      } catch (error) {
+        errMsg.textContent = error.message;
+      }
+    };
+    update();
+    text.addEventListener('keyup', () => update());
+    document.getElementById('default').addEventListener('click', () => {
+      config = defaultConfig;
+      update();
+    });
+    document.getElementById('green').addEventListener('click', () => {
+      config = greenConfig;
+      update();
+    });
+    document.getElementById('blue').addEventListener('click', () => {
+      config = blueConfig;
+      update();
+    });
+
+    var savePNG = () => {
+      // https://qiita.com/skryoooo/items/a37455bef54321a6195a
+
+      var svg= document.getElementsByTagName('svg')[0];
+      var svgData = new XMLSerializer().serializeToString(svg);
+      var canvas = document.createElement("canvas");
+      canvas.width = svg.width.baseVal.value;
+      canvas.height = svg.height.baseVal.value;
+
+      var ctx = canvas.getContext("2d");
+      var image = new Image;
+      image.onload = function(){
+          ctx.drawImage( image, 0, 0 );
+          var a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.setAttribute("download", "image.png");
+          a.dispatchEvent(new MouseEvent("click"));
+      }
+      image.src = "data:image/svg+xml;charset=utf-8;base64," 
+        + btoa(unescape(encodeURIComponent(svgData))); 
+    };
+
+    var saveSVG = () => {
+      // https://ameblo.jp/personwritep/entry-12495099049.html
+      var svg= document.getElementsByTagName('svg')[0];
+      var svgData = new XMLSerializer().serializeToString(svg);
+      let blob = new Blob([svgData], {type: "image/svg"});
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a); // for Firefox
+      a.download = "image.svg";
+      a.click();
+      document.body.removeChild(a); // for Firefox
+      URL.revokeObjectURL(a.href);
+    };
+
+    document.getElementById('save-png').addEventListener('click', () => {
+      savePNG();
+    });
+    document.getElementById('save-svg').addEventListener('click', () => {
+      saveSVG();
+    });
+  </script>
+</body>
+
+</html>

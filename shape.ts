@@ -219,9 +219,9 @@ class Factory {
     } else if (type === 'diamond') {
       width = textSize.width + textSize.height / this.config.diamond.aspectRatio;
       height = textSize.height + textSize.width * this.config.diamond.aspectRatio;
-      console.assert(Math.abs(height / width - this.config.diamond.aspectRatio) < 0.1);
+      // console.assert(Math.abs(height / width - this.config.diamond.aspectRatio) < 0.1);
     } else {
-      console.assert(false);
+      // console.assert(false);
     }
 
     const textShape = this.trans(

@@ -4,6 +4,11 @@ import {render} from './renderer/svg'
 
 const progs = [
 String.raw`
+if a
+else
+`,
+
+String.raw`
 a
 `,
 
@@ -162,6 +167,31 @@ do
     d
 while d
 `,
+
+String.raw`
+do
+  if a
+    break
+  elif d
+    d
+while d
+`,
+
+String.raw`
+i = 1
+while i <= 100
+  if i % 15 == 0
+    print("FizzBuzz")
+    break
+  elif i % 3 == 0
+    print("Fizz")
+    break
+  elif i % 5 == 0
+    print("Buzz")
+    break
+  else
+    print(i)
+`
 ];
 
 const showSVG = (svg: Element) => {
@@ -181,7 +211,7 @@ const showCode = (text: string) => {
 progs.forEach(prog => {
   try {
     showCode(prog);
-    const svg = render(prog);
+    const svg = render({src: prog, document});
     showSVG(svg);
   } catch(e) {
     const msg = `error!\n${e.stack}`;

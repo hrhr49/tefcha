@@ -1,3 +1,5 @@
+import {Config} from './config'
+
 class TefchaParseError extends Error {}
 
 const tefchaError = ({lineno, msg, src = ''}: {lineno?: number; msg: string; src?: string}): Error => {
@@ -33,10 +35,6 @@ const INDENT_KEYWORDS = [
 ];
 const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break', 'pass'];
 
-// indent need to be this string.
-const INDENT_STR = '  ';
-// line starts with this character is skipped by parser.
-const COMMENT_STR = '#';
 
 interface LineInfo {
   lineno: number;
@@ -44,8 +42,8 @@ interface LineInfo {
   nestLevel: number;
 }
 
-const extractLineInfo = (src: string): LineInfo[] => {
-  const lineInfoList: LineInfo[] = [];
+const extractLineInfo = (src: string, config: Config): LineInfo[] => {
+  let lineInfoList: LineInfo[] = [];
   let keepedLine: string = ''; // string to keep line ends with '\'
 
   src.split(/\r\n|\r|\n/).forEach((line, lineno) => {
@@ -60,13 +58,13 @@ const extractLineInfo = (src: string): LineInfo[] => {
 
     let nestLevel = 0;
     // count the number of indent
-    while (line.startsWith(INDENT_STR)) {
+    while (line.startsWith(config.src.indentStr)) {
       nestLevel++;
-      line = line.slice(INDENT_STR.length);
+      line = line.slice(config.src.indentStr.length);
     }
 
     // skip comment
-    if (line.startsWith(COMMENT_STR)) return;
+    if (line.startsWith(config.src.commentStr)) return;
 
     // if the line ends with '\', keep it.
     if (line.endsWith('\\')) {
@@ -86,6 +84,11 @@ const extractLineInfo = (src: string): LineInfo[] => {
   if (keepedLine !== '') {
     throw tefchaError({msg: `EOF is found after '\\'`});
   }
+
+  // if all lines has same indent, remove it.
+  const minNestLevel = Math.min(...lineInfoList.map(l => l.nestLevel));
+  lineInfoList = lineInfoList.map(l => ({...l, nestLevel: l.nestLevel - minNestLevel}));
+
   return lineInfoList;
 };
 
@@ -141,7 +144,7 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
 
 const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
   if (!node.children) return;
-  console.log(node.type);
+  // console.log(node.type);
 
   let prevChild: ASTNode = {type: 'none', lineno: -1};
   node.children.forEach((child, idx) => {
@@ -198,8 +201,8 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
 };
 
 
-const parse = (src: string): ASTNode => {
-  const lineInfoList = extractLineInfo(src);
+const parse = (src: string, config: Config): ASTNode => {
+  const lineInfoList = extractLineInfo(src, config);
   const node = _parse(lineInfoList, src);
   validateAST(node, [], src);
   return node;
