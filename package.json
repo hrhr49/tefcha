@@ -33,7 +33,7 @@
     "typescript": "^3.9.6"
   },
   "scripts": {
-    "watch": "parcel index.html --open",
+    "watch": "parcel debug/index.html --open",
     "build-cli": "parcel build --target node bin/cli.ts --out-dir bin --out-file cli.js",
     "build-browser": "parcel build --target browser browser/main.ts --out-dir dist --out-file tefcha.js",
     "ins": "npm uninstall -g tefcha && npm install -g",

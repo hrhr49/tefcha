@@ -1,5 +1,4 @@
-import './style.css'
-import {render} from './renderer/svg'
+import {render} from '../renderer/svg'
 
 
 const progs = [

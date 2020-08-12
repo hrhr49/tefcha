@@ -6,7 +6,8 @@ Text to Flowchart.
 ![./img/sample.gif](./img/sample.gif)
 
 ## Demo
-TODO
+
+[https://hrhr49.github.io/tefcha/demo](https://hrhr49.github.io/tefcha/demo)
 
 ## Feature
 * Convert pseudo code to flowchart image.

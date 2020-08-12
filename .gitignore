@@ -1,5 +1,6 @@
 .cache/
-dist/
+dist/*
+!dist/tefcha.js
 node_modules/
 yarn.lock
 cli.js
