@@ -3,12 +3,44 @@ import {render} from '../renderer/svg'
 
 const progs = [
 String.raw`
-if a
-else
+a
 `,
 
 String.raw`
 a
+bc
+`,
+
+String.raw`
+while a
+  b
+`,
+
+String.raw`
+while a
+  b
+  break
+`,
+
+String.raw`
+do
+  b
+while c
+`,
+
+String.raw`
+do
+  b
+  break
+while c
+`,
+
+String.raw`
+do
+  b
+  continue
+  s
+while c
 `,
 
 String.raw`
@@ -190,7 +222,92 @@ while i <= 100
     break
   else
     print(i)
-`
+`,
+
+String.raw`
+while i <= 100
+  if i % 15 == 0
+    a
+  else
+    if a
+      continue
+`,
+
+String.raw`
+while a
+  if a
+    if c
+      break
+    if d
+      continue
+    while i <= 100
+      if i % 15 == 0
+        a
+      else
+        if a
+          break
+    if a
+      break
+  elif b
+    if c
+      break
+    if d
+      continue
+    while i <= 100
+      if i % 15 == 0
+        a
+      else
+        if a
+          continue
+    if b
+      continue
+  else
+    if c
+      break
+    if d
+      continue
+    while i <= 100
+      if i % 15 == 0
+        a
+      else
+        if a
+          break
+        else
+          continue
+    if c
+      break
+    else
+      continue
+End
+`,
+
+String.raw`
+# This is a example.
+# NOTE:
+#   The line starts with "#" is comment.
+#   "\n" is newline.
+#   All indent must be "  " (2 whitespaces).
+
+Start\nFizzBuzz!
+i = 1
+
+while i <= 100
+  if i % 15 == 0
+    print("FizzBuzz")
+  elif i % 3 == 0
+    print("Fizz")
+    if aafeafe
+      continue
+    elif baaaffaweeaaa
+      break
+  elif i % 5 == 0
+    print("Buzz")
+  else
+    print(ia)
+    break
+End
+`,
+      
 ];
 
 const showSVG = (svg: Element) => {

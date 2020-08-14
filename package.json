@@ -27,6 +27,7 @@
     "@types/puppeteer": "^3.0.1",
     "jest": "^26.2.2",
     "npm-run-all": "^4.1.5",
+    "opener": "^1.5.1",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-shebang": "^1.2.9",
     "ts-jest": "^26.1.4",
@@ -38,9 +39,13 @@
     "build-browser": "parcel build --target browser browser/main.ts --out-dir dist --out-file tefcha.js",
     "ins": "npm uninstall -g tefcha && npm install -g",
     "deploy": "npm-run-all build-cli ins",
-    "build": "npm-run-all build-cli build-browser"
+    "build": "npm-run-all build-cli build-browser",
+    "test": "jest",
+    "demo": "opener demo/index.html"
   },
-  "keywords": ["flowchart"],
+  "keywords": [
+    "flowchart"
+  ],
   "author": "hrhr49",
   "license": "ISC"
 }
