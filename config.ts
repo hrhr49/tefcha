@@ -45,6 +45,10 @@ interface Config {
   }
 }
 
+const OPACITY = '100%';
+const STROKE_COLOR = 'black';
+const FILL_COLOR = 'white';
+
 const defaultConfig: Config = {
   src: {
     // indent need to be this string.
@@ -125,8 +129,8 @@ const defaultConfig: Config = {
     padY: 8,
 
     attrs: {
-      'stroke': 'black',
-      'fill': 'white',
+      'stroke': STROKE_COLOR,
+      'fill': FILL_COLOR,
       'stroke-width': '2px',
       'fill-opacity': '0%',
     },
@@ -152,8 +156,8 @@ const defaultConfig: Config = {
     labelMarginY: 0,
 
     attrs: {
-      'stroke': 'black',
-      'fill': 'white',
+      'stroke': STROKE_COLOR,
+      'fill': FILL_COLOR,
       'fill-opacity': '0%',
       'stroke-width': '2px',
     },
@@ -161,30 +165,30 @@ const defaultConfig: Config = {
 
   path: {
     attrs: {
-      'stroke': 'black',
-      'fill': 'black',
+      'stroke': STROKE_COLOR,
+      'fill': STROKE_COLOR,
       'stroke-linecap': 'square',
       'stroke-width': '2px',
       'fill-opacity': '0%',
-      'stroke-opacity': '100%',
+      'stroke-opacity': OPACITY,
     },
   },
 
   arrowHead: {
     size: 15,
     attrs: {
-      'stroke': 'black',
-      'fill': 'black',
-      'fill-opacity': '100%',
+      'stroke': STROKE_COLOR,
+      'fill': STROKE_COLOR,
+      'fill-opacity': OPACITY,
       'stroke-width': '0px',
     },
   },
 
   text: {
     attrs: {
-      'stroke': 'black',
-      'fill': 'black',
-      'fill-opacity': '100%',
+      'stroke': STROKE_COLOR,
+      'fill': STROKE_COLOR,
+      'fill-opacity': OPACITY,
       'font-size': '14px',
       'stroke-width': '0',
       /* font-weight': 'lighter', */
@@ -197,17 +201,16 @@ const defaultConfig: Config = {
     noText: 'N',
 
     attrs: {
-      'stroke': 'black',
-      'fill': 'black',
-      'fill-opacity': '100%',
+      'stroke': STROKE_COLOR,
+      'fill': STROKE_COLOR,
+      'fill-opacity': OPACITY,
       'font-size': '10px',
       'font-weight': 'lighter',
     },
   },
 };
 
-const mergeDefaultConfig = (config: any): Config => {
-  if(!config) return defaultConfig;
+const mergeDefaultConfig = (config: any = {}): Config => {
   return {
     src: {
       ...defaultConfig.src,

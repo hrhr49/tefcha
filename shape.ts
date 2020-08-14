@@ -1,11 +1,11 @@
-import {Config} from './config'
+const {max, min} = Math;
 
 class BaseShape {
   x: number;
   y: number;
 
-  width: number;
-  height: number;
+  w: number;
+  h: number;
 
   // NOTE: these values are relative coordinate
   minX: number;
@@ -16,8 +16,8 @@ class BaseShape {
   constructor({
     x = 0,
     y = 0,
-    width = 0,
-    height = 0,
+    w = 0,
+    h = 0,
     minX = 0,
     minY = 0,
     maxX = 0,
@@ -25,8 +25,8 @@ class BaseShape {
   }: {
     x?: number;
     y?: number;
-    width?: number;
-    height?: number;
+    w?: number;
+    h?: number;
     minX?: number;
     minY?: number;
     maxX?: number;
@@ -34,8 +34,8 @@ class BaseShape {
   }) {
     this.x = x;
     this.y = y;
-    this.width = width;
-    this.height = height;
+    this.w = w;
+    this.h = h;
     this.minX = minX;
     this.minY = minY;
     this.maxX = maxX;
@@ -83,17 +83,17 @@ class Path extends BaseShape {
       } else {
         py += step;
       }
-      minX = Math.min(minX, px);
-      minY = Math.min(minY, py);
-      maxX = Math.max(maxX, px);
-      maxY = Math.max(maxY, py);
+      minX = min(minX, px);
+      minY = min(minY, py);
+      maxX = max(maxX, px);
+      maxY = max(maxY, py);
     });
 
     super({
       x, y,
       minX, minY, maxX, maxY,
-      width: maxX - minX,
-      height: maxY - minY,
+      w: maxX - minX,
+      h: maxY - minY,
     });
     this.cmds = cmds;
     this.isArrow = isArrow;
@@ -131,8 +131,8 @@ class Text extends BaseShape {
   constructor(
     {
       content,
-      width,
-      height,
+      w,
+      h,
       x = 0,
       y = 0,
       isLabel = false,
@@ -142,16 +142,16 @@ class Text extends BaseShape {
       content: string;
       x?: number;
       y?: number;
-      width: number;
-      height: number
+      w: number;
+      h: number
       isLabel?: boolean;
     }
   ) {
     super({
       x, y,
-      maxX: width,
-      maxY: height,
-      width, height,
+      maxX: w,
+      maxY: h,
+      w, h,
     });
     this.content = content;
     this.type = 'text';
@@ -160,11 +160,11 @@ class Text extends BaseShape {
 
   static createByMeasure = ({x = 0, y = 0, text, attrs, measureText, isLabel}:
     {x?: number, y?: number, text: string; attrs: any, measureText: MeasureTextFunc, isLabel?: boolean}): Text => {
-    const {width, height} = measureText(text, attrs);
+    const {w, h} = measureText(text, attrs);
     return new Text({
       content: text,
       x, y,
-      width, height,
+      w, h,
       isLabel,
     });
   }
@@ -172,20 +172,20 @@ class Text extends BaseShape {
 
 class Rect extends BaseShape {
   readonly type: 'rect';
-  constructor({x = 0, y = 0, width, height}
-    : {x?: number; y?: number; width: number; height: number}
+  constructor({x = 0, y = 0, w, h}
+    : {x?: number; y?: number; w: number; h: number}
   ) {
-    super({x, y, width, height, maxX: width, maxY: height});
+    super({x, y, w, h, maxX: w, maxY: h});
     this.type = 'rect';
   }
 }
 
 class Diamond extends BaseShape {
   readonly type: 'diamond';
-  constructor({x = 0, y = 0, width, height}
-    : {x?: number; y?: number; width: number; height: number}
+  constructor({x = 0, y = 0, w, h}
+    : {x?: number; y?: number; w: number; h: number}
   ) {
-    super({x, y, width, height, maxX: width, maxY: height});
+    super({x, y, w, h, maxX: w, maxY: h});
     this.type = 'diamond';
   }
 }
@@ -201,23 +201,23 @@ class Group extends BaseShape {
       // add dummy shape.
       children = [...children, new Point({x, y})];
     }
-    this.minX = Math.min(...children.map(child => child.x + child.minX));
-    this.minY = Math.min(...children.map(child => child.y + child.minY));
-    this.maxX = Math.max(...children.map(child => child.x + child.maxX));
-    this.maxY = Math.max(...children.map(child => child.y + child.maxY));
-    this.width = this.maxX - this.minX;
-    this.height = this.maxY - this.minY;
+    this.minX = min(...children.map(c => c.x + c.minX));
+    this.minY = min(...children.map(c => c.y + c.minY));
+    this.maxX = max(...children.map(c => c.x + c.maxX));
+    this.maxY = max(...children.map(c => c.y + c.maxY));
+    this.w = this.maxX - this.minX;
+    this.h = this.maxY - this.minY;
     this.type = 'group';
     this.children = children;
   }
 
   add = (shape: Shape): Group => {
-    this.minX = Math.min(this.minX, shape.x + shape.minX);
-    this.minY = Math.min(this.minY, shape.y + shape.minY);
-    this.maxX = Math.max(this.maxX, shape.x + shape.maxX);
-    this.maxY = Math.max(this.maxY, shape.y + shape.maxY);
-    this.width = this.maxX - this.minX;
-    this.height = this.maxY - this.minY;
+    this.minX = min(this.minX, shape.x + shape.minX);
+    this.minY = min(this.minY, shape.y + shape.minY);
+    this.maxX = max(this.maxX, shape.x + shape.maxX);
+    this.maxY = max(this.maxY, shape.y + shape.maxY);
+    this.w = this.maxX - this.minX;
+    this.h = this.maxY - this.minY;
     this.children.push(shape);
     return this;
   }
@@ -225,8 +225,8 @@ class Group extends BaseShape {
 
 type Shape = Point | Path | Text | Rect | Diamond | Group;
 interface TextSize {
-  readonly width: number;
-  readonly height: number;
+  readonly w: number;
+  readonly h: number;
 }
 
 type MeasureTextFunc = (text: string, attrs?: any) => TextSize;

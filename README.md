@@ -35,4 +35,4 @@ TODO
 hrhr49
 
 ## License
-TODO
+MIT
