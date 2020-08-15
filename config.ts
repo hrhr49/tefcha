@@ -45,7 +45,7 @@ interface Config {
   }
 }
 
-const OPACITY = '100%';
+const OPACITY = '50%';
 const STROKE_COLOR = 'black';
 const FILL_COLOR = 'white';
 
