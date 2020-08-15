@@ -158,9 +158,9 @@ class Text extends BaseShape {
     this.isLabel = isLabel;
   }
 
-  static createByMeasure = ({x = 0, y = 0, text, attrs, measureText, isLabel}:
-    {x?: number, y?: number, text: string; attrs: any, measureText: MeasureTextFunc, isLabel?: boolean}): Text => {
-    const {w, h} = measureText(text, attrs);
+  static byMeas = ({x = 0, y = 0, text, attrs, meas, isLabel}:
+    {x?: number, y?: number, text: string; attrs: any, meas: MeasureTextFunc, isLabel?: boolean}): Text => {
+    const {w, h} = meas(text, attrs);
     return new Text({
       content: text,
       x, y,

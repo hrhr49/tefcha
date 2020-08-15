@@ -36,7 +36,7 @@ interface CondPosition {
   readonly S: {x: number, y: number},
 };
 
-const jumpDirectionTable = {
+const jumpDir = {
 // {{{
   'while': {
     'break': 'E',
@@ -55,15 +55,15 @@ const jumpDirectionTable = {
 
 class LoopStackInfo {
   readonly type: LoopType;
-  readonly breakPoints: Point[];
-  readonly continuePoints: Point[];
+  readonly breaks: Point[];
+  readonly continues: Point[];
 
   constructor(
     type: LoopType = 'none',
   ) {
     this.type = type;
-    this.breakPoints = [];
-    this.continuePoints = [];
+    this.breaks = [];
+    this.continues = [];
   }
 }
 
@@ -73,7 +73,7 @@ class Flowchart {
   readonly shapes: Group;
   readonly config: Config;
   private readonly measureText: MeasureTextFunc;
-  loopInfo: LoopStackInfo;
+  loop: LoopStackInfo;
   AllocW: RangeAllocator;
   AllocE: RangeAllocator;
   alive: boolean;
@@ -87,7 +87,7 @@ class Flowchart {
     shapes,
     measureText,
     config,
-    loopInfo,
+    loop,
     AllocW,
     AllocE,
     x,
@@ -96,7 +96,7 @@ class Flowchart {
   {
     config: Config;
     measureText: MeasureTextFunc;
-    loopInfo: LoopStackInfo;
+    loop: LoopStackInfo;
     AllocW: RangeAllocator;
     AllocE: RangeAllocator;
     shapes: Group;
@@ -106,7 +106,7 @@ class Flowchart {
     this.shapes = shapes;
     this.measureText = measureText;
     this.config = config;
-    this.loopInfo = loopInfo;
+    this.loop = loop;
     this.AllocW = AllocW;
     this.AllocE = AllocE;
 
@@ -118,13 +118,13 @@ class Flowchart {
   }
 
   shiftX = (x: number): void => {
-    const {shapes, loopInfo} = this;
+    const {shapes, loop} = this;
     shapes.trans(x, 0);
     this.x += x;
 
-    const {breakPoints, continuePoints} = loopInfo;
-    breakPoints.forEach(point => point.trans(x, 0));
-    continuePoints.forEach(point => point.trans( x, 0));
+    const {breaks, continues} = loop;
+    breaks.forEach(point => point.trans(x, 0));
+    continues.forEach(point => point.trans( x, 0));
   }
 
   step = (distance: number = this.dy): void => {
@@ -179,10 +179,10 @@ class Flowchart {
   }
 
   private text = ({x, y, text, isLabel}: {x: number, y: number, text: string, isLabel: boolean}): Text => {
-    return Text.createByMeasure({x, y, text, attrs: this.config.text.attrs, measureText: this.measureText, isLabel});
+    return Text.byMeas({x, y, text, attrs: this.config.text.attrs, meas: this.measureText, isLabel});
   }
 
-  stepAndText = (content: string): void => {
+  stepText = (content: string): void => {
     const {dy} = this;
     const rect = this.rect({x: 0, y: 0, text: content});
 
@@ -198,7 +198,7 @@ class Flowchart {
     this.move(rect.h);
   }
 
-  stepAndDiamond = (
+  stepCond = (
     {
       content,
       yesDir,
@@ -222,7 +222,6 @@ class Flowchart {
     } = this;
     const {yesText, noText} = this.config.label;
     const {labelMarginX, labelMarginY} = this.config.diamond;
-
 
     const cond = diamond({x: 0, y: 0, text: content});
     // find the space to put vline and diamond.
@@ -265,7 +264,7 @@ class Flowchart {
       shapes: new Group({x: this.x, y: this.y, children: []}),
       measureText: this.measureText,
       config: this.config,
-      loopInfo: new LoopStackInfo(this.loopInfo.type),
+      loop: new LoopStackInfo(this.loop.type),
       AllocW: this.AllocW.clone(),
       AllocE: this.AllocE.clone(),
       x: this.x, y: this.y,
@@ -278,17 +277,15 @@ class Flowchart {
       this.shapes.add(child);
     });
 
-    this.loopInfo.breakPoints.push(...flowchart.loopInfo.breakPoints);
-    this.loopInfo.continuePoints.push(...flowchart.loopInfo.continuePoints);
+    this.loop.breaks.push(...flowchart.loop.breaks);
+    this.loop.continues.push(...flowchart.loop.continues);
 
-    if (flowchart.y > this.y) {
-      this.moveAbs(flowchart.y);
-    }
+    if (flowchart.y > this.y) this.moveAbs(flowchart.y);
   }
 
-  withLoopType = (type: LoopType, func: () => void) => {
-    const {loopInfo, AllocW, AllocE} = this;
-    this.loopInfo = new LoopStackInfo(type);
+  withLoop = (type: LoopType, func: () => void) => {
+    const {loop, AllocW, AllocE} = this;
+    this.loop = new LoopStackInfo(type);
 
     const newAllocW = new RangeAllocator(createRangeList()); 
 
@@ -314,9 +311,9 @@ class Flowchart {
     this.AllocE = newAllocE;
 
     func();
-    const newloopInfo = this.loopInfo;
+    const newloop = this.loop;
 
-    this.loopInfo = loopInfo;
+    this.loop = loop;
     this.AllocW = AllocW;
     this.AllocE = AllocE;
 
@@ -326,7 +323,7 @@ class Flowchart {
     // we should keep AllocE of inner loop to AllocW.
     this.AllocW.mergeAllocator(headE);
 
-    return newloopInfo;
+    return newloop;
   }
 
   // to debug
@@ -355,7 +352,7 @@ const createFlowchart = ({
     shapes: new Group({x: 0, y: 0, children: []}),
     measureText,
     config,
-    loopInfo: new LoopStackInfo(),
+    loop: new LoopStackInfo(),
     AllocW: new RangeAllocator(createRangeList()),
     AllocE: new RangeAllocator(createRangeList()),
     x: 0, y: config.flowchart.marginY,
@@ -369,8 +366,8 @@ const createFlowchart = ({
 const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean = false): void => {
 // {{{
   const {
-    step, stepAbs, stepAndText, dy,
-    AllocW, AllocE, loopInfo,
+    step, stepAbs, stepText, dy,
+    AllocW, AllocE, loop,
   } = flowchart;
   const {children} = node;
   const childNum = children.length;
@@ -379,7 +376,7 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
     let child = children[childIdx];
     switch (child.type) {
       case 'text': {
-        stepAndText(child.content);
+        stepText(child.content);
         break;
       }
       case 'pass': {
@@ -411,7 +408,7 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       }
       case 'break':
       case 'continue': {
-        const direction = jumpDirectionTable[loopInfo.type][child.type];
+        const direction = jumpDir[loop.type][child.type];
         const pos = jump ?  (flowchart.y - dy) :
           (direction === 'W' ? AllocW : AllocE).findSpace(flowchart.y, dy);
         
@@ -420,8 +417,8 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
 
         if (!jump) stepAbs(pos + dy);
 
-        const {breakPoints, continuePoints} = loopInfo;
-        (child.type === 'break' ?  breakPoints : continuePoints).push(new Point({x: 0, y: flowchart.y}));
+        const {breaks, continues} = loop;
+        (child.type === 'break' ?  breaks : continues).push(new Point({x: 0, y: flowchart.y}));
         flowchart.alive = false;
         break;
       }
@@ -456,37 +453,26 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
     return;
   }
 
+  const {dx, dy} = flowchart;
   const ifFlowchart = flowchart.branch();
   const elseFlowchart = flowchart.branch();
-  const loopType = flowchart.loopInfo.type;
+  const loopType = flowchart.loop.type;
 
   const ifNode = nodes[0];
-  let yesInfo: CondInfo = {
-    dir: 'S',
-    jump: false,
-  };
-  let noInfo: CondInfo = {
-    dir: 'E',
-    jump: false,
-  };
+  let yes: CondInfo = {dir: 'S', jump: false};
+  let no: CondInfo = {dir: 'E', jump: false};
 
-  // calculate yesInfo
+  // calculate yes
   if (ifNode.children.length > 0) {
     const type = ifNode.children[0].type;
     if (type === 'break' || type === 'continue') {
-      yesInfo = {
-        dir: jumpDirectionTable[loopType][type],
-        jump: true,
-      };
+      yes = {dir: jumpDir[loopType][type], jump: true};
       // if "yes" direction is not "S", default "no" direction is "S".
-      noInfo = {
-        dir: 'S',
-        jump: false,
-      };
+      no = {dir: 'S', jump: false};
     }
   }
 
-  // if "elif" or "else" exists, calculate noInfo
+  // if "elif" or "else" exists, calculate no
   if (
     nodes.length > 1
     && nodes[1].type === 'else'
@@ -494,71 +480,62 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
   ) {
     const type = nodes[1].children[0].type;
     if (type === 'break' || type === 'continue') {
-      const dir = jumpDirectionTable[loopType][type];
-      if (dir !== yesInfo.dir) {
-        noInfo = {
-          dir,
-          jump: true,
-        };
-      }
+      const dir = jumpDir[loopType][type];
+      if (dir !== yes.dir) no = {dir, jump: true};
     }
   }
 
-  const condPos = flowchart.stepAndDiamond({
+  const condPos = flowchart.stepCond({
     content: ifNode.content,
-    yesDir: yesInfo.dir,
-    noDir: noInfo.dir,
+    yesDir: yes.dir,
+    noDir: no.dir,
     jumpW: 
-      (yesInfo.dir === 'W' && yesInfo.jump)
-      ||(noInfo.dir === 'W' && noInfo.jump),
+      (yes.jump && yes.dir === 'W')
+      ||(no.jump && no.dir === 'W'),
     jumpE:
-      (yesInfo.dir === 'E' && yesInfo.jump)
-      ||(noInfo.dir === 'E' && noInfo.jump),
+      (yes.jump && yes.dir === 'E')
+      ||(no.jump && no.dir === 'E'),
   });
 
-  ifFlowchart.moveAbs(condPos[yesInfo.dir].y);
-  createFlowchartSub(ifNode, ifFlowchart, yesInfo.jump);
-  ifFlowchart.shiftX(condPos[yesInfo.dir].x);
+  ifFlowchart.moveAbs(condPos[yes.dir].y);
+  createFlowchartSub(ifNode, ifFlowchart, yes.jump);
+  ifFlowchart.shiftX(condPos[yes.dir].x);
 
   // create else part flowchart
-  elseFlowchart.moveAbs(condPos[noInfo.dir].y);
-  createIfFlowchart(nodes.slice(1), elseFlowchart, noInfo.jump);
-  if (noInfo.jump) {
-      elseFlowchart.shiftX(condPos[noInfo.dir].x);
-  } else {
-    if (yesInfo.dir === 'S') {
-      const elseFlowchartX = Math.max(condPos.E.x, ifFlowchart.shapes.maxX) + flowchart.dx - elseFlowchart.shapes.minX;
-      elseFlowchart.shiftX(elseFlowchartX);
+  elseFlowchart.moveAbs(condPos[no.dir].y);
+  createIfFlowchart(nodes.slice(1), elseFlowchart, no.jump);
+  if (!no.jump && !yes.jump) {
+    const elseFlowchartX = Math.max(condPos.E.x, ifFlowchart.shapes.maxX) + dx - elseFlowchart.shapes.minX;
+    elseFlowchart.shiftX(elseFlowchartX);
 
-      ifFlowchart.shapes.add(Path.hline({
-        x: condPos.E.x, y: condPos.E.y,
-        step: elseFlowchart.shapes.x - condPos.E.x,
-      }));
+    ifFlowchart.shapes.add(Path.hline({
+      x: condPos.E.x, y: condPos.E.y,
+      step: elseFlowchart.shapes.x - condPos.E.x,
+    }));
 
-      let mergeY: number;
-      if (elseFlowchart.alive) {
-        const pos = flowchart.AllocE.findSpace(
-          Math.max(ifFlowchart.y, elseFlowchart.y), flowchart.dy)
-        flowchart.AllocW.merge(pos, flowchart.dy);
-        mergeY = pos + flowchart.dy;
-      } else {
-        mergeY = Math.max(ifFlowchart.y, elseFlowchart.y);
-      }
-
-      if (ifFlowchart.alive) ifFlowchart.stepAbs(mergeY);
-      if (elseFlowchart.alive) elseFlowchart.stepAbs(mergeY);
-
-      if (elseFlowchart.alive) {
-        ifFlowchart.shapes.add(Path.hline({
-          x: elseFlowchart.shapes.x,
-          y: mergeY,
-          step: - elseFlowchart.shapes.x + ifFlowchart.shapes.x,
-          isArrow: ifFlowchart.alive,
-        }));
-      }
+    let mergeY: number;
+    if (elseFlowchart.alive) {
+      const pos = flowchart.AllocE.findSpace(
+        Math.max(ifFlowchart.y, elseFlowchart.y), dy)
+        flowchart.AllocW.merge(pos, dy);
+        mergeY = pos + dy;
     } else {
-      elseFlowchart.shiftX(condPos[noInfo.dir].x);
+      mergeY = Math.max(ifFlowchart.y, elseFlowchart.y);
     }
+
+    if (ifFlowchart.alive) ifFlowchart.stepAbs(mergeY);
+    if (elseFlowchart.alive) elseFlowchart.stepAbs(mergeY);
+
+    if (elseFlowchart.alive) {
+      ifFlowchart.shapes.add(Path.hline({
+        x: elseFlowchart.shapes.x,
+        y: mergeY,
+        step: - elseFlowchart.shapes.x + ifFlowchart.shapes.x,
+        isArrow: ifFlowchart.alive,
+      }));
+    }
+  } else {
+    elseFlowchart.shiftX(condPos[no.dir].x);
   }
 
   flowchart.merge(ifFlowchart);
@@ -591,8 +568,8 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
   //                     |
 
   const {
-    move, step, stepAbs, dx, dy, stepAndDiamond,
-    withLoopType, shapes,
+    move, step, stepAbs, dx, dy, stepCond,
+    withLoop, shapes,
     AllocW, AllocE,
   } = flowchart;
 
@@ -603,23 +580,23 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
   }
 
   const loopBackMergeY = flowchart.y;
-  const condPos = stepAndDiamond({
+  const condPos = stepCond({
     content: node.content,
     yesDir: 'S', noDir: 'E',
     jumpE: false, jumpW: false,
   });
 
-  const {breakPoints, continuePoints} = 
-    withLoopType('while', () => {
+  const {breaks, continues} = 
+    withLoop('while', () => {
       createFlowchartSub(node, flowchart);
     });
 
-  const loopBackPoints: Point[] = [...continuePoints];
-  const exitPoints: Point[] = [...breakPoints];
+  const loopBackPoints: Point[] = [...continues];
+  const exitPoints: Point[] = [...breaks];
   if (flowchart.alive) {
     const pos = AllocE.findSpace(flowchart.y, dy);
     AllocW.merge(pos, dy);
-    step();
+    stepAbs(pos + dy);
     loopBackPoints.push(new Point({x: 0, y: flowchart.y}));
   }
   exitPoints.push(new Point({...condPos.E}));
@@ -689,8 +666,8 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
   //                   |
 
   const {
-    move, step, stepAbs, dx, dy, stepAndDiamond,
-    shapes, withLoopType,
+    move, step, stepAbs, dx, dy, stepCond,
+    shapes, withLoop,
     AllocW, AllocE,
   } = flowchart;
 
@@ -702,19 +679,19 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
 
   const loopBackMergeY = flowchart.y;
 
-  const {breakPoints, continuePoints} = 
-    withLoopType('doWhile', () => {
+  const {breaks, continues} = 
+    withLoop('doWhile', () => {
       createFlowchartSub(doNode, flowchart);
     });
 
-  const exitPoints: Point[] = [...breakPoints];
+  const exitPoints: Point[] = [...breaks];
 
   let loopBackPathX: number;
   let exitPathX: number;
   let skipPathX = 0;
 
-  if (flowchart.alive || continuePoints.length > 0) {
-    if (continuePoints.length > 0) {
+  if (flowchart.alive || continues.length > 0) {
+    if (continues.length > 0) {
       if (flowchart.alive) {
         step();
       } else {
@@ -722,7 +699,7 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
       }
       skipPathX = shapes.maxX + dx;
 
-      continuePoints
+      continues
         .sort((p1, p2) => p1.y < p2.y ? -1 : 1)
         .forEach((p, idx) => {
           shapes.add(new Path({
@@ -738,7 +715,7 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
     }
 
     // flowchart.step();
-    const condPos = stepAndDiamond({
+    const condPos = stepCond({
       content: whileNode.content,
       yesDir: 'S', noDir: 'E',
       jumpW: false, jumpE: false,
