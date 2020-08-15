@@ -385,15 +385,27 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       }
       case 'if': {
         const nodes: ASTNode[] = [];
-        ['if', 'elif', 'else'].forEach(type => {
-          while (
-            childIdx < childNum &&
-            children[childIdx].type === type
-          ) {
-            nodes.push(children[childIdx]);
-            childIdx++;
-          }
-        });
+        if (
+          childIdx < childNum &&
+          children[childIdx].type === 'if'
+        ) {
+          nodes.push(children[childIdx]);
+          childIdx++;
+        }
+        while (
+          childIdx < childNum &&
+          children[childIdx].type === 'elif'
+        ) {
+          nodes.push(children[childIdx]);
+          childIdx++;
+        }
+        if (
+          childIdx < childNum &&
+          children[childIdx].type === 'else'
+        ) {
+          nodes.push(children[childIdx]);
+          childIdx++;
+        }
         createIfFlowchart(nodes, flowchart);
         continue;
       }
