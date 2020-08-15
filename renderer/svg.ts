@@ -73,7 +73,7 @@ class Renderer {
       const {width, height} = textSVG.getBoundingClientRect();
       dummySVG.removeChild(textSVG);
       this._document.body.removeChild(dummySVG);
-      return {width, height};
+      return {w: width, h: height};
     }
 
   renderShape = ({
@@ -97,7 +97,7 @@ class Renderer {
     } = this;
     const x = offsetX + shape.x;
     const y = offsetY + shape.y;
-    const {width, height} = shape;
+    const {w, h} = shape;
 
     switch (shape.type) {
       case 'group':
@@ -109,7 +109,7 @@ class Renderer {
             shape.content,
             {
               x,
-              y: y + measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).height / 2,
+              y: y + measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).h / 2,
               'dominant-baseline': 'central',
               ...(shape.isLabel ? config.label.attrs : config.text.attrs),
             })
@@ -127,11 +127,11 @@ class Renderer {
         }));
         break;
       case 'rect':
-        layers.nodeLayer.append(el('rect', {x, y, width, height, ...config.rect.attrs}));
+        layers.nodeLayer.append(el('rect', {x, y, width: w, height: h, ...config.rect.attrs}));
         break;
       case 'diamond':
         layers.nodeLayer.append(el('polygon', {
-          points: `${x + width / 2},${y}, ${x + width},${y + height / 2} ${x + width / 2},${y + height} ${x},${y + height / 2}`,
+          points: `${x + w / 2},${y}, ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`,
           ...config.diamond.attrs,
         }));
         break;
@@ -183,7 +183,7 @@ class Renderer {
         nodeLayer,
         textLayer,
       },
-      shape: flowchart.shapeGroup,
+      shape: flowchart.shapes,
       config,
     });
 
@@ -191,8 +191,8 @@ class Renderer {
     svg.append(nodeLayer);
     svg.append(textLayer);
 
-    svg.setAttribute('width', (flowchart.shapeGroup.width + config.flowchart.marginX * 2).toString());
-    svg.setAttribute('height', (flowchart.shapeGroup.height + config.flowchart.marginY * 2).toString());
+    svg.setAttribute('width', (flowchart.shapes.w + config.flowchart.marginX * 2).toString());
+    svg.setAttribute('height', (flowchart.shapes.h + config.flowchart.marginY * 2).toString());
     return svg;
   };
 }

@@ -1,22 +1,23 @@
 import {Config} from './config'
 
-class TefchaParseError extends Error {}
 
-const tefchaError = ({lineno, msg, src = ''}: {lineno?: number; msg: string; src?: string}): Error => {
-  const RANGE_LINES = 5
-  let mainMsg = msg;
-  if (lineno && lineno > 0) {
-    mainMsg = `at line ${lineno}: ${mainMsg}`;
+class TefchaError extends Error {
+  constructor({lineno, msg, src = ''}: {lineno?: number; msg: string; src?: string}) {
+    const RANGE_LINES = 5
+    let mainMsg = msg;
+    if (lineno && lineno > 0) {
+      mainMsg = `at line ${lineno}: ${mainMsg}`;
+    }
+    let positionInfo = '';
+    if (src && lineno > 0) {
+      positionInfo = src.split(/\n/)
+        .map((line, idx) => ({lineno: idx + 1, line}))
+        .slice(Math.max(0, lineno - 1 - RANGE_LINES), lineno - 1 + RANGE_LINES)
+        .map(({lineno: ln, line}) => `${ln === lineno ? '>' : ' '}${ln}: ${line}`)
+        .join('\n');
+    }
+    super(`${mainMsg}\n${positionInfo}`);
   }
-  let positionInfo = '';
-  if (src && lineno > 0) {
-    positionInfo = src.split(/\n/)
-      .map((line, idx) => ({lineno: idx + 1, line}))
-      .slice(Math.max(0, lineno - 1 - RANGE_LINES), lineno - 1 + RANGE_LINES)
-      .map(({lineno: ln, line}) => `${ln === lineno ? '>' : ' '}${ln}: ${line}`)
-      .join('\n');
-  }
-  return new TefchaParseError(`${mainMsg}\n${positionInfo}`);
 }
 
 // indent based AST
@@ -39,12 +40,13 @@ const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break', 'pass'];
 interface LineInfo {
   lineno: number;
   line: string;
-  nestLevel: number;
+  nest: number;
 }
 
 const extractLineInfo = (src: string, config: Config): LineInfo[] => {
   let lineInfoList: LineInfo[] = [];
   let keepedLine: string = ''; // string to keep line ends with '\'
+  const {indentStr, commentStr} = config.src;
 
   src.split(/\r\n|\r|\n/).forEach((line, lineno) => {
     // add 1 because lineno starts with 1
@@ -56,15 +58,15 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     // skip empty line
     if (line.trim() === '') return;
 
-    let nestLevel = 0;
+    let nest = 0;
     // count the number of indent
-    while (line.startsWith(config.src.indentStr)) {
-      nestLevel++;
-      line = line.slice(config.src.indentStr.length);
+    while (line.startsWith(indentStr)) {
+      nest++;
+      line = line.slice(indentStr.length);
     }
 
     // skip comment
-    if (line.startsWith(config.src.commentStr)) return;
+    if (line.startsWith(commentStr)) return;
 
     // if the line ends with '\', keep it.
     if (line.endsWith('\\')) {
@@ -77,17 +79,17 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     lineInfoList.push({
       lineno,
       line,
-      nestLevel,
+      nest,
     });
   });
 
   if (keepedLine !== '') {
-    throw tefchaError({msg: `EOF is found after '\\'`});
+    throw new TefchaError({msg: `EOF is found after '\\'`});
   }
 
   // if all lines has same indent, remove it.
-  const minNestLevel = Math.min(...lineInfoList.map(l => l.nestLevel));
-  lineInfoList = lineInfoList.map(l => ({...l, nestLevel: l.nestLevel - minNestLevel}));
+  const minNest = Math.min(...lineInfoList.map(l => l.nest));
+  lineInfoList = lineInfoList.map(l => ({...l, nest: l.nest - minNest}));
 
   return lineInfoList;
 };
@@ -96,14 +98,14 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
   const rootNode: ASTNode = {type: 'program', lineno: 0, children: []};
   let nodeStack: ASTNode[] = [rootNode]; // stack to keep parents
 
-  lineInfoList.forEach(({lineno, line, nestLevel}) => {
+  lineInfoList.forEach(({lineno, line, nest}) => {
     // if unexpected indent exists, throw error
-    if ((nodeStack.length - 1) < nestLevel) {
-      throw tefchaError({lineno, src, msg: 'unexpected indent'});
+    if ((nodeStack.length - 1) < nest) {
+      throw new TefchaError({lineno, src, msg: 'unexpected indent'});
     }
 
     // if unindent is found, pop nodes from parents stack
-    while ((nodeStack.length - 1) > nestLevel) {
+    while ((nodeStack.length - 1) > nest) {
       nodeStack.pop();
     }
 
@@ -117,25 +119,24 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
         lineno,
         content: line,
       });
-      return;
-    }
+    } else {
+      const newNode = {
+        type: firstWord,
+        lineno,
+        content: line.slice(line.indexOf(' ') + 1),
+        children: [],
+      };
+      currentNode.children.push(newNode);
 
-    const newNode = {
-      type: firstWord,
-      lineno,
-      content: line.slice(line.indexOf(' ') + 1),
-      children: [],
-    };
-    currentNode.children.push(newNode);
-
-    if (INDENT_KEYWORDS.includes(firstWord)) {
-      const lastChildNode: ASTNode | null =
-        currentNode.children.length > 0 ?
-          currentNode.children.slice(-1)[0] :
-          null;
-      // 'while' of do-while do not have indent
-      if (!(lastChildNode.type === 'do' && firstWord === 'while')) {
-        nodeStack.push(newNode);
+      if (INDENT_KEYWORDS.includes(firstWord)) {
+        const lastChildNode: ASTNode | null =
+          currentNode.children.length > 0 ?
+            currentNode.children.slice(-1)[0] :
+            null;
+        // 'while' of do-while do not have indent
+        if (!(lastChildNode.type === 'do' && firstWord === 'while')) {
+          nodeStack.push(newNode);
+        }
       }
     }
   });
@@ -143,11 +144,10 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
 }
 
 const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
-  if (!node.children) return;
-  // console.log(node.type);
+  const children = node.children || [];
 
   let prevChild: ASTNode = {type: 'none', lineno: -1};
-  node.children.forEach((child, idx) => {
+  children.forEach((child, idx) => {
     const {lineno} = child;
     switch (child.type) {
       case 'program':
@@ -158,12 +158,12 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'else':
         if (!['if', 'elif'].includes(prevChild.type)) {
-          throw tefchaError({lineno, src, msg: 'before "else" statement, "if" or "elif" shoud exists.'});
+          throw new TefchaError({lineno, src, msg: 'before "else" statement, "if" or "elif" shoud exists.'});
         }
         break;
       case 'elif':
         if (!['if', 'elif'].includes(prevChild.type)) {
-          throw tefchaError({lineno, src, msg: 'before "elif" statement, "if" or "elif" shoud exists.'});
+          throw new TefchaError({lineno, src, msg: 'before "elif" statement, "if" or "elif" shoud exists.'});
         }
         break;
       case 'while':
@@ -172,32 +172,32 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'case':
         if (node.type !== 'switch') {
-          throw tefchaError({lineno, src, msg: 'keyword "case" shoud be in "switch" statement.'});
+          throw new TefchaError({lineno, src, msg: 'keyword "case" shoud be in "switch" statement.'});
         }
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
-          throw tefchaError({lineno, src, msg: 'at ${lineno} "continue" statement shoud be in loop'});
+          throw new TefchaError({lineno, src, msg: 'at ${lineno} "continue" statement shoud be in loop'});
         }
         break;
       case 'break':
         if (![...parents, node].some(n => ['for', 'while', 'do', 'case'].includes(n.type))) {
-          throw tefchaError({lineno, src, msg: '"break" statement shoud be in loop or "case".'});
+          throw new TefchaError({lineno, src, msg: '"break" statement shoud be in loop or "case".'});
         }
         break;
       case 'do':
-        if (idx + 1 >= node.children.length || node.children[idx + 1].type !== 'while') {
-          throw tefchaError({lineno, src, msg: 'cannot find corresponding keyword "while" to keyword "do".'});
+        if (idx + 1 >= children.length || children[idx + 1].type !== 'while') {
+          throw new TefchaError({lineno, src, msg: 'cannot find corresponding keyword "while" to keyword "do".'});
         }
         break;
       case 'pass':
         break;
       default:
-        throw tefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
     }
     prevChild = child;
   });
-  node.children.forEach(child => validateAST(child, [...parents, node], src));
+  children.forEach(child => validateAST(child, [...parents, node], src));
 };
 
 

@@ -83,7 +83,14 @@ class RangeAllocator {
     return new RangeAllocator(this.ref);
   };
 
-  findAllocatablePosition = (
+  cloneDeep = (): RangeAllocator => {
+    // clone range list too.
+    return new RangeAllocator(createRangeList(
+      ...this.ranges().map(({start, end}) => [start, end] as [number, number])
+    ));
+  };
+
+  findSpace = (
     start: number,
     size: number,
   ): number => {
@@ -117,7 +124,7 @@ class RangeAllocator {
     start: number,
     size: number,
   ): number => {
-    const rangeStart = this.findAllocatablePosition(start, size);
+    const rangeStart = this.findSpace(start, size);
     const rangeEnd = rangeStart + size;
     const cur = this.ref;
     if (cur.end === rangeStart) {

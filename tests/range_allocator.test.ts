@@ -38,10 +38,10 @@ test('create list of two ranges', () => {
   expect(createRangeList([0, 1], [2, 3])).toEqual(twoRangeList);
 });
 
-test('test findAllocatablePosition', () => {
+test('test findSpace', () => {
   const rangeList = createRangeList();
   const allocator = new RangeAllocator(rangeList);
-  expect(allocator.findAllocatablePosition(0, 1)).toBe(0);
+  expect(allocator.findSpace(0, 1)).toBe(0);
 });
 
 
