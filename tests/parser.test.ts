@@ -1,5 +1,5 @@
-import {parse} from '../parser'
-import {defaultConfig} from '../config'
+import {parse} from '../src/parser'
+import {defaultConfig} from '../src/config'
 
 import {simpleProgs} from '../debug/simple'
 import {ifProgs} from '../debug/if'
