@@ -1,9 +1,13 @@
 name: CI
 on:
   push:
-    branches: [ master, features ]
+    branches:
+      - master
+      - feature
   pull_request:
-    branches: [ master, features ]
+    branches:
+      - master
+      - feature
 jobs:
   build:
     runs-on: ubuntu-latest
