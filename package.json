@@ -17,6 +17,9 @@
     }
   ],
   "files": [
+    "LICENSE",
+    "README.md",
+    "src",
     "dist/lib",
     "dist/esm",
     "umd",
@@ -48,13 +51,14 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "build": "npm-run-all -p build:*",
     "ins": "npm uninstall -g tefcha && npm install -g",
-    "deploy": "npm-run-all build-cli ins",
+    "deploy": "npm-run-all build ins",
     "test": "jest",
     "clean": "rimraf dist umd",
     "demo": "opener demo/index.html"
   },
   "keywords": [
-    "flowchart"
+    "flowchart",
+    "tefcha"
   ],
   "author": "hrhr49",
   "license": "MIT",
