@@ -101,6 +101,15 @@ End
 </html>
 ```
 
+## Configuration
+
+You can pass a custom configuration to `tefcha.initialize()`.
+
+See
+
+* [./src/config.ts](src/config.ts)
+* [./demo/index.html](./demo/index.html)
+
 ## Author
 
 hrhr49
