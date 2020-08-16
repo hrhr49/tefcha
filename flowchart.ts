@@ -579,19 +579,20 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
   //                     +----------------+
   //                     |
 
+  const blockFlowchart = flowchart.branch();
   const {
     move, stepAbs, dx, dy, stepCond,
     withLoop, shapes,
     AllocW, AllocE,
-  } = flowchart;
+  } = blockFlowchart;
 
   {
-    const pos = AllocE.findSpace(flowchart.y, dy);
+    const pos = AllocE.findSpace(blockFlowchart.y, dy);
     AllocW.merge(pos, dy);
     stepAbs(pos + dy);
   }
 
-  const loopBackMergeY = flowchart.y;
+  const loopBackMergeY = blockFlowchart.y;
   const condPos = stepCond({
     content: node.content,
     yesDir: 'S', noDir: 'E',
@@ -600,16 +601,16 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
 
   const {breaks, continues} = 
     withLoop('while', () => {
-      createFlowchartSub(node, flowchart);
+      createFlowchartSub(node, blockFlowchart);
     });
 
   const loopBackPoints: Point[] = [...continues];
   const exitPoints: Point[] = [...breaks];
-  if (flowchart.alive) {
-    const pos = AllocE.findSpace(flowchart.y, dy);
+  if (blockFlowchart.alive) {
+    const pos = AllocE.findSpace(blockFlowchart.y, dy);
     AllocW.merge(pos, dy);
     stepAbs(pos + dy);
-    loopBackPoints.push(new Point({x: 0, y: flowchart.y}));
+    loopBackPoints.push(new Point({x: 0, y: blockFlowchart.y}));
   }
   exitPoints.push(new Point({...condPos.E}));
 
@@ -642,11 +643,13 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
         cmds: 
           idx === 0 ? 
           [ ['h', exitPathX - p.x],
-            ['v', flowchart.y - p.y],
+            ['v', blockFlowchart.y - p.y],
             ['h', -exitPathX] ] :
           [ ['h', exitPathX - p.x] ],
       }));
   });
+
+  flowchart.merge(blockFlowchart);
   // }}}
 }
 
@@ -677,23 +680,24 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
   //                   +---------------------+
   //                   |
 
+  const blockFlowchart = flowchart.branch();
   const {
     move, step, stepAbs, dx, dy, stepCond,
     shapes, withLoop,
     AllocW, AllocE,
-  } = flowchart;
+  } = blockFlowchart;
 
   {
-    const pos = AllocE.findSpace(flowchart.y, dy);
+    const pos = AllocE.findSpace(blockFlowchart.y, dy);
     AllocW.merge(pos, dy);
     stepAbs(pos + dy);
   }
 
-  const loopBackMergeY = flowchart.y;
+  const loopBackMergeY = blockFlowchart.y;
 
   const {breaks, continues} = 
     withLoop('doWhile', () => {
-      createFlowchartSub(doNode, flowchart);
+      createFlowchartSub(doNode, blockFlowchart);
     });
 
   const exitPoints: Point[] = [...breaks];
@@ -702,9 +706,9 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
   let exitPathX: number;
   let skipPathX = 0;
 
-  if (flowchart.alive || continues.length > 0) {
+  if (blockFlowchart.alive || continues.length > 0) {
     if (continues.length > 0) {
-      if (flowchart.alive) {
+      if (blockFlowchart.alive) {
         step();
       } else {
         move();
@@ -719,14 +723,13 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
             cmds: 
               idx === 0 ?
               [ ['h', skipPathX - p.x],
-                ['v', flowchart.y - p.y],
+                ['v', blockFlowchart.y - p.y],
                 ['h', -skipPathX] ] :
               [ ['h', skipPathX - p.x] ],
           }));
         });
     }
 
-    // flowchart.step();
     const condPos = stepCond({
       content: whileNode.content,
       yesDir: 'S', noDir: 'E',
@@ -738,10 +741,10 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
 
     // loop back path
     shapes.add(new Path({
-      x: 0, y: flowchart.y, isArrow: true,
+      x: 0, y: blockFlowchart.y, isArrow: true,
       cmds: [
         ['h', loopBackPathX],
-        ['v', loopBackMergeY - flowchart.y],
+        ['v', loopBackMergeY - blockFlowchart.y],
         ['h', -loopBackPathX],
       ],
     }));
@@ -764,11 +767,13 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
         cmds: 
           idx === 0 ?
           [ ['h', exitPathX - p.x],
-            ['v', flowchart.y - p.y],
+            ['v', blockFlowchart.y - p.y],
             ['h', -exitPathX] ] :
           [ ['h', exitPathX - p.x] ],
       }));
     });
+
+  flowchart.merge(blockFlowchart);
   // }}}
 }
 

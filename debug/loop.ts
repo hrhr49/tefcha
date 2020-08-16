@@ -3,6 +3,16 @@ String.raw`
 while a
   b
 `,
+String.raw`
+while a
+  b
+while a
+  b
+while a
+  b
+while a
+  b
+`,
 
 String.raw`
 while a
@@ -15,6 +25,22 @@ do
   b
 while c
 `,
+
+String.raw`
+do
+  b
+while c
+do
+  b
+while c
+do
+  b
+while c
+do
+  b
+while c
+`,
+
 
 String.raw`
 do
