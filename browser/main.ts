@@ -1,5 +1,5 @@
-import {render} from '../renderer/svg'
-import {Config} from '../config'
+import {render} from '../src/renderer/svg'
+import {Config} from '../src/config'
 
 declare global {
   interface Window {

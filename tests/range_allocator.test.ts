@@ -2,7 +2,7 @@ import {
   RangeList,
   createRangeList,
   RangeAllocator,
-} from '../range_allocator'
+} from '../src/range_allocator'
 
 test('create list of no ranges', () => {
   const emptyList: RangeList = {

@@ -1,50 +1,43 @@
 {
   "name": "tefcha",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Text to Flowchart.",
-  "main": "index.js",
-  "bin": {
-    "tefcha": "bin/cli.js"
-  },
-  "shebang": [
-    {
-      "interperter": "node",
-      "files": [
-        "bin/cli.ts"
-      ]
-    }
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.js",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "src",
+    "dist/cjs",
+    "dist/esm",
+    "umd"
   ],
-  "dependencies": {
-    "chalk": "^4.1.0",
-    "commander": "^5.1.0",
-    "puppeteer": "^5.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/chalk": "^2.2.0",
-    "@types/commander": "^2.12.2",
-    "@types/jest": "^26.0.9",
+    "@types/jest": "^26.0.10",
     "@types/node": "^14.0.23",
-    "@types/puppeteer": "^3.0.1",
-    "jest": "^26.2.2",
+    "jest": "^26.4.0",
     "npm-run-all": "^4.1.5",
     "opener": "^1.5.1",
     "parcel-bundler": "^1.12.4",
-    "parcel-plugin-shebang": "^1.2.9",
-    "ts-jest": "^26.1.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.2.0",
     "typescript": "^3.9.6"
   },
   "scripts": {
     "watch": "parcel debug/index.html --open",
-    "build-cli": "parcel build --target node bin/cli.ts --out-dir bin --out-file cli.js",
-    "build-browser": "parcel build --experimental-scope-hoisting --detailed-report 10 --target browser browser/main.ts --out-dir dist --out-file tefcha.js",
-    "ins": "npm uninstall -g tefcha && npm install -g",
-    "deploy": "npm-run-all build-cli ins",
-    "build": "npm-run-all build-cli build-browser",
+    "build:umd": "parcel build --experimental-scope-hoisting --detailed-report 10 --target browser browser/main.ts --out-dir umd --out-file tefcha.js",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "npm-run-all -p build:*",
     "test": "jest",
+    "clean": "rimraf dist umd",
     "demo": "opener demo/index.html"
   },
   "keywords": [
-    "flowchart"
+    "flowchart",
+    "tefcha"
   ],
   "author": "hrhr49",
   "license": "MIT",

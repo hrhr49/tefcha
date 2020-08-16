@@ -103,6 +103,7 @@ class Flowchart {
     x: number;
     y: number;
   }) {
+    this.type = 'flowchart';
     this.shapes = shapes;
     this.measureText = measureText;
     this.config = config;

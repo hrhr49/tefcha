@@ -1,4 +1,4 @@
-import {render} from '../renderer/svg'
+import {render} from '../src/renderer/svg'
 import {simpleProgs} from './simple'
 import {ifProgs} from './if'
 import {loopProgs} from './loop'

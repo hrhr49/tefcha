@@ -33,10 +33,7 @@ class Renderer {
   }: RenderParam) {
     this._document = document;
     this.src = src;
-    this.config = {
-      ...defaultConfig,
-      ...config,
-    }
+    this.config = config = mergeDefaultConfig(config);
 
     this.dummySVG = this.el('svg');
   }
@@ -143,7 +140,6 @@ class Renderer {
 
   render = () => {
     let {src, config, el, measureText, renderShape} = this;
-    config = mergeDefaultConfig(config);
     const svg = this.el('svg');
     const arrowHeadDef = el('defs', null,
       el('marker',
@@ -204,4 +200,5 @@ const render = (param: RenderParam) => {
 
 export {
   render,
+  Renderer,
 }
