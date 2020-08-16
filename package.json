@@ -39,7 +39,7 @@
     "flowchart",
     "tefcha"
   ],
-  "author": "hrhr49",
+  "author": "hrhr49 <hiro49410@gmail.com>",
   "license": "MIT",
   "directories": {
     "test": "tests"
