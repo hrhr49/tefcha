@@ -580,7 +580,7 @@ const createWhileFlowchart = (node: ASTNode, flowchart: Flowchart): void => {
   //                     |
 
   const {
-    move, step, stepAbs, dx, dy, stepCond,
+    move, stepAbs, dx, dy, stepCond,
     withLoop, shapes,
     AllocW, AllocE,
   } = flowchart;

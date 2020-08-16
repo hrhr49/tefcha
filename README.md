@@ -16,7 +16,7 @@ Text to Flowchart.
 Only these features are supported for now
 * if, elif, else statements
 * while, do-while statements
-* break, continue statement (but, layout is not good).
+* break, continue statement.
 
 ### Not Supported (for now)
 * for statement
@@ -32,7 +32,10 @@ Only these features are supported for now
 TODO
 
 ## Author
+
 hrhr49
+
+hiro49410@gmail.com
 
 ## License
 MIT

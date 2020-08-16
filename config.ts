@@ -1,47 +1,47 @@
 interface Config {
   src: {
-    indentStr: string;
-    commentStr: string;
+    readonly indentStr: string;
+    readonly commentStr: string;
   };
 
   flowchart: {
-    marginX: number;
-    marginY: number;
-    stepX: number;
-    stepY: number;
+    readonly marginX: number;
+    readonly marginY: number;
+    readonly stepX: number;
+    readonly stepY: number;
   };
 
   rect: {
-    padX: number;
-    padY: number;
-    attrs: any;
+    readonly padX: number;
+    readonly padY: number;
+    readonly attrs: any;
   };
 
   path: {
-    attrs: any;
+    readonly attrs: any;
   };
 
   arrowHead: {
-    size: number;
-    attrs: any;
+    readonly size: number;
+    readonly attrs: any;
   };
 
   diamond: {
-    aspectRatio: number;
-    labelMarginX: number;
-    labelMarginY: number;
-    attrs: any;
+    readonly aspectRatio: number;
+    readonly labelMarginX: number;
+    readonly labelMarginY: number;
+    readonly attrs: any;
   };
 
   text: {
-    attrs: any;
+    readonly attrs: any;
   }
 
   // 'yes', 'no' label
   label: {
-    attrs: any;
-    yesText: string;
-    noText: string;
+    readonly attrs: any;
+    readonly yesText: string;
+    readonly noText: string;
   }
 }
 

@@ -126,15 +126,15 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
         content: line.slice(line.indexOf(' ') + 1),
         children: [],
       };
+      const lastChildNode: ASTNode | null =
+        currentNode.children.length > 0 ?
+          currentNode.children.slice(-1)[0] :
+          null;
       currentNode.children.push(newNode);
 
       if (INDENT_KEYWORDS.includes(firstWord)) {
-        const lastChildNode: ASTNode | null =
-          currentNode.children.length > 0 ?
-            currentNode.children.slice(-1)[0] :
-            null;
         // 'while' of do-while do not have indent
-        if (!(lastChildNode.type === 'do' && firstWord === 'while')) {
+        if (!(lastChildNode && lastChildNode.type === 'do' && firstWord === 'while')) {
           nodeStack.push(newNode);
         }
       }
@@ -177,7 +177,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
-          throw new TefchaError({lineno, src, msg: 'at ${lineno} "continue" statement shoud be in loop'});
+          throw new TefchaError({lineno, src, msg: '"continue" statement shoud be in loop'});
         }
         break;
       case 'break':
@@ -197,6 +197,16 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
     }
     prevChild = child;
   });
+
+  if (node.type === 'switch') {
+    children.forEach(child => {
+      const {lineno} = child;
+      if (child.type !== 'case') {
+        throw new TefchaError({lineno, src, msg: `${child.type}" is found in "switch" block. "switch" should have "case" only`});
+      }
+    });
+  }
+
   children.forEach(child => validateAST(child, [...parents, node], src));
 };
 
@@ -211,4 +221,5 @@ const parse = (src: string, config: Config): ASTNode => {
 export {
   ASTNode,
   parse,
+  TefchaError,
 }

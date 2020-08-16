@@ -47,5 +47,16 @@
     "flowchart"
   ],
   "author": "hrhr49",
-  "license": "ISC"
+  "license": "MIT",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrhr49/tefcha.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hrhr49/tefcha/issues"
+  },
+  "homepage": "https://github.com/hrhr49/tefcha#readme"
 }
