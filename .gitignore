@@ -1,7 +1,9 @@
 .cache/
-dist/*
-!dist/tefcha.js
+dist/
+umd/
 node_modules/
 yarn.lock
 cli.js
 cli.js.map
+package-lock.json
+yarn-error.log

@@ -2,7 +2,9 @@
   "name": "tefcha",
   "version": "0.0.1",
   "description": "Text to Flowchart.",
-  "main": "index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.js",
   "bin": {
     "tefcha": "bin/cli.js"
   },
@@ -14,6 +16,12 @@
       ]
     }
   ],
+  "files": [
+    "dist/lib",
+    "dist/esm",
+    "umd",
+    "bin"
+  ],
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^5.1.0",
@@ -22,25 +30,27 @@
   "devDependencies": {
     "@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
-    "@types/jest": "^26.0.9",
     "@types/node": "^14.0.23",
     "@types/puppeteer": "^3.0.1",
-    "jest": "^26.2.2",
     "npm-run-all": "^4.1.5",
     "opener": "^1.5.1",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-shebang": "^1.2.9",
-    "ts-jest": "^26.1.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.2.0",
     "typescript": "^3.9.6"
   },
   "scripts": {
     "watch": "parcel debug/index.html --open",
-    "build-cli": "parcel build --target node bin/cli.ts --out-dir bin --out-file cli.js",
-    "build-browser": "parcel build --experimental-scope-hoisting --detailed-report 10 --target browser browser/main.ts --out-dir dist --out-file tefcha.js",
+    "build:cli": "parcel build --target node bin/cli.ts --out-dir bin --out-file cli.js",
+    "build:umd": "parcel build --experimental-scope-hoisting --detailed-report 10 --target browser browser/main.ts --out-dir umd --out-file tefcha.js",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "npm-run-all -p build:*",
     "ins": "npm uninstall -g tefcha && npm install -g",
     "deploy": "npm-run-all build-cli ins",
-    "build": "npm-run-all build-cli build-browser",
     "test": "jest",
+    "clean": "rimraf dist umd",
     "demo": "opener demo/index.html"
   },
   "keywords": [
