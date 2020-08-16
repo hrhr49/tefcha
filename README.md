@@ -1,4 +1,5 @@
 # Tefcha
+
 **NOTE:** **THIS IS UNDER DEVELOPMENT. ANYTHING CAN BE CHANGED.**
 
 Text to Flowchart.
@@ -12,18 +13,42 @@ Text to Flowchart.
 ## Feature
 * Convert pseudo code to flowchart image.
 
-### Supported
+## Installation
+
+### CDN
+
+```html
+<script src="https://unpkg.com/tefcha/umd/tefcha.js"></script>
+```
+
+### npm
+
+```
+npm install tefcha
+```
+
+### CLI Tool
+
+You can use command line interface also.
+https://github.com/hrhr49/tefcha-cli
+
+```
+npm install tefcha-cli
+```
+
+## Supported
+
 Only these features are supported for now
+
 * if, elif, else statements
 * while, do-while statements
 * break, continue statement.
 
-### Not Supported (for now)
+## Not Supported (for now)
+
 * for statement
 * swich-case statement
 * return statement
-
-## Note
 
 ## Reserved Word
 * if, elif, else, while, do, for, continue, break, switch, case, pass
@@ -67,7 +92,7 @@ while i <= 100
     print(i)
 End
   </div>
-  <script src="./umd/tefcha.js"></script>
+  <script src="https://unpkg.com/tefcha/umd/tefcha.js"></script>
   <script>
     tefcha.initialize();
   </script>
