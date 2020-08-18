@@ -9,6 +9,7 @@ interface Config {
     readonly marginY: number;
     readonly stepX: number;
     readonly stepY: number;
+    readonly hlineMargin: number;
   };
 
   rect: {
@@ -105,6 +106,21 @@ const defaultConfig: Config = {
     // | bbb |
     // +-----+
     stepY: 24,
+
+    //      +-----+
+    //      | aaa |
+    //      +--+--+    
+    //         |       
+    //         |       
+    //         |    hline
+    //  <-----------------............ ^
+    //         |                       |
+    //         |                       | hlineMargin
+    //         |                       |
+    //      +--+--+................... v
+    //      | bbb |
+    //      +-----+
+    hlineMargin: 24,
   },
 
   rect: {
