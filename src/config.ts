@@ -225,31 +225,55 @@ const mergeDefaultConfig = (config: any = {}): Config => {
     rect: {
       ...defaultConfig.rect,
       ...(config.rect || {}),
+      attrs: {
+        ...defaultConfig.rect.attrs,
+        ...(config.rect && config.rect.attrs || {}),
+      }
     },
 
     diamond: {
       ...defaultConfig.diamond,
       ...(config.diamond || {}),
+      attrs: {
+        ...defaultConfig.diamond.attrs,
+        ...(config.diamond && config.diamond.attrs || {}),
+      }
     },
 
     path: {
       ...defaultConfig.path,
       ...(config.path || {}),
+      attrs: {
+        ...defaultConfig.path.attrs,
+        ...(config.path && config.path.attrs || {}),
+      }
     },
 
     arrowHead: {
       ...defaultConfig.arrowHead,
       ...(config.arrowHead || {}),
+      attrs: {
+        ...defaultConfig.arrowHead.attrs,
+        ...(config.arrowHead && config.arrowHead.attrs || {}),
+      }
     },
 
     text: {
       ...defaultConfig.text,
       ...(config.text || {}),
+      attrs: {
+        ...defaultConfig.text.attrs,
+        ...(config.text && config.text.attrs || {}),
+      }
     },
 
     label: {
       ...defaultConfig.label,
       ...(config.label || {}),
+      attrs: {
+        ...defaultConfig.label.attrs,
+        ...(config.label && config.label.attrs || {}),
+      }
     },
   }
 };

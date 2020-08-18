@@ -5,7 +5,7 @@ import {
   Shape
 } from '../shape'
 import {createFlowchart} from '../flowchart'
-import {defaultConfig, Config, mergeDefaultConfig} from '../config'
+import {Config, mergeDefaultConfig} from '../config'
 
 
 interface Layers {
@@ -140,7 +140,10 @@ class Renderer {
 
   render = () => {
     let {src, config, el, measureText, renderShape} = this;
-    const svg = this.el('svg');
+    const svg = this.el('svg', {
+      version: '1.1',
+      xmlns: 'http://www.w3.org/2000/svg',
+    });
     const arrowHeadDef = el('defs', null,
       el('marker',
         {
