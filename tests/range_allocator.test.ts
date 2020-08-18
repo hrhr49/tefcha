@@ -63,7 +63,7 @@ test('test allocate', () => {
   expect(allocator.allocate(0, 3)).toBe(7);
   expect(rangeList).toEqual(createRangeList([0, 3], [6, 10]));
 
-  // ref is moved foward already.
+  // ref is moved forward already.
   expect(allocator.allocate(0, 1)).toBe(10);
   expect(rangeList).toEqual(createRangeList([0, 3], [6, 11]));
 

@@ -76,7 +76,7 @@ Only these features are supported for now
 # NOTE:
 #   The line starts with "#" is comment.
 #   "\n" is newline.
-#   All indent must be "  " (2 whitespaces).
+#   All indent must be "  " (2 white spaces).
 
 Start\nFizzBuzz!
 i = 1

@@ -260,7 +260,7 @@ String.raw`
 # NOTE:
 #   The line starts with "#" is comment.
 #   "\n" is newline.
-#   All indent must be "  " (2 whitespaces).
+#   All indent must be "  " (2 white spaces).
 
 Start\nFizzBuzz!
 i = 1
@@ -270,9 +270,9 @@ while i <= 100
     print("FizzBuzz")
   elif i % 3 == 0
     print("Fizz")
-    if aafeafe
+    if a1
       continue
-    elif baaaffaweeaaa
+    elif a2
       break
   elif i % 5 == 0
     print("Buzz")

@@ -187,7 +187,7 @@ class Flowchart {
     const {dy} = this;
     const rect = this.rect({x: 0, y: 0, text: content});
 
-    // find the space to put vline and recangle.
+    // find the space to put vline and rectangle.
     const pos = this.AllocE.findSpace(this.y, rect.h + dy);
 
     // keep allocated y-coordinate range.
@@ -296,15 +296,15 @@ class Flowchart {
     // because it is across the block's flowchart.
     //
     // TODO: 
-    // the amout of calculation of "cloneDeep()" is O(n) (n is the number of ranges).
-    // To reduce the amout, we have to use stack-based allocation and
+    // the amount of calculation of "cloneDeep()" is O(n) (n is the number of ranges).
+    // To reduce the amount, we have to use stack-based allocation and
     // remove the deep copy process.
     const newAllocE = AllocE.cloneDeep();
 
     // NOTE:
     // We do not have to consider the outer AllocW because
-    // layouting is done from "W" to "E".
-    // So, there are no acrossing lines from "E".
+    // laying flowchart out is done from "W" to "E".
+    // So, there are no crossing lines from "E".
     const headW = newAllocW.clone();
     const headE = newAllocE.clone();
 
@@ -312,7 +312,7 @@ class Flowchart {
     this.AllocE = newAllocE;
 
     func();
-    const newloop = this.loop;
+    const newLoop = this.loop;
 
     this.loop = loop;
     this.AllocW = AllocW;
@@ -320,11 +320,11 @@ class Flowchart {
 
     this.AllocW.mergeAllocator(headW);
 
-    // NOTE: Since layouting is applied from "W" to "E",
+    // NOTE: Since laying flowchart out is applied from "W" to "E",
     // we should keep AllocE of inner loop to AllocW.
     this.AllocW.mergeAllocator(headE);
 
-    return newloop;
+    return newLoop;
   }
 
   // to debug
