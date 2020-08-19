@@ -45,7 +45,7 @@ interface LineInfo {
 
 const extractLineInfo = (src: string, config: Config): LineInfo[] => {
   let lineInfoList: LineInfo[] = [];
-  let keepedLine: string = ''; // string to keep line ends with '\'
+  let keptLine: string = ''; // string to keep line ends with '\'
   const {indentStr, commentStr} = config.src;
 
   src.split(/\r\n|\r|\n/).forEach((line, lineno) => {
@@ -53,7 +53,7 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     lineno++;
 
     // concatenate previous line ends with '\'
-    line = keepedLine + line;
+    line = keptLine + line;
 
     // skip empty line
     if (line.trim() === '') return;
@@ -70,11 +70,11 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
 
     // if the line ends with '\', keep it.
     if (line.endsWith('\\')) {
-      keepedLine = line.slice(0, -1);
+      keptLine = line.slice(0, -1);
       return;
     }
 
-    keepedLine = '';
+    keptLine = '';
 
     lineInfoList.push({
       lineno,
@@ -83,7 +83,7 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     });
   });
 
-  if (keepedLine !== '') {
+  if (keptLine !== '') {
     throw new TefchaError({msg: `EOF is found after '\\'`});
   }
 
@@ -158,12 +158,12 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'else':
         if (!['if', 'elif'].includes(prevChild.type)) {
-          throw new TefchaError({lineno, src, msg: 'before "else" statement, "if" or "elif" shoud exists.'});
+          throw new TefchaError({lineno, src, msg: 'before "else" statement, "if" or "elif" should exists.'});
         }
         break;
       case 'elif':
         if (!['if', 'elif'].includes(prevChild.type)) {
-          throw new TefchaError({lineno, src, msg: 'before "elif" statement, "if" or "elif" shoud exists.'});
+          throw new TefchaError({lineno, src, msg: 'before "elif" statement, "if" or "elif" should exists.'});
         }
         break;
       case 'while':
@@ -172,17 +172,17 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'case':
         if (node.type !== 'switch') {
-          throw new TefchaError({lineno, src, msg: 'keyword "case" shoud be in "switch" statement.'});
+          throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
         }
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
-          throw new TefchaError({lineno, src, msg: '"continue" statement shoud be in loop'});
+          throw new TefchaError({lineno, src, msg: '"continue" statement should be in loop'});
         }
         break;
       case 'break':
         if (![...parents, node].some(n => ['for', 'while', 'do', 'case'].includes(n.type))) {
-          throw new TefchaError({lineno, src, msg: '"break" statement shoud be in loop or "case".'});
+          throw new TefchaError({lineno, src, msg: '"break" statement should be in loop or "case".'});
         }
         break;
       case 'do':

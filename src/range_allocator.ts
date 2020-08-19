@@ -1,5 +1,5 @@
 // We have to manage y-axis allocation,
-// because when layouting horizontal lines,
+// because when laying out horizontal lines,
 // we want to avoid other nodes or horizontal lines.
 
 // 
@@ -31,8 +31,8 @@
 
 // NOTE:
 //
-// for any range list, first range must not removed
-// by any of the function to the allocator point to it.
+// for any range list, first range must not be removed
+// by any function to the allocator point to it.
 //
 //
 
@@ -44,7 +44,7 @@ interface RangeList {
 }
 
 const createRangeList = (...ranges: [number, number][]): RangeList => {
-  // for convinience, these head and tail are used as general of linear search.
+  // for convenience, these head and tail are used as general of linear search.
   const head = {
     start: -Infinity,
     end: -Infinity,

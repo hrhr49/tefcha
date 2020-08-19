@@ -76,7 +76,7 @@ Only these features are supported for now
 # NOTE:
 #   The line starts with "#" is comment.
 #   "\n" is newline.
-#   All indent must be "  " (2 whitespaces).
+#   All indent must be "  " (2 white spaces).
 
 Start\nFizzBuzz!
 i = 1
@@ -109,6 +109,119 @@ See
 
 * [./src/config.ts](src/config.ts)
 * [./demo/index.html](./demo/index.html)
+
+## Syntax
+
+### Statement
+
+If text is not started with reserved word, it means simple statement.
+It is rendered as a box with the text.
+
+```
+hello
+```
+![simple.png](img/simple.png)
+
+### Newline
+
+You can use `\n` for newline.
+
+```
+hello\nworld
+```
+
+![newline.png](img/newline.png)
+
+### If Statement
+
+* text starts with `if` means if statement.
+* indented line means block.
+
+```
+if score > 80
+  good!
+
+end
+```
+
+![if.png](img/if.png)
+
+### If-elif Statement
+
+You can use `elif` and `else` also.
+
+```
+if score > 80
+  good!
+elif score > 30
+  soso
+else
+  bad!
+
+end
+```
+
+![if-elif-else.png](img/if-elif-else.png)
+
+### While Statement
+
+* text starts with `while` means while statement.
+
+```
+while score < 30
+  study again
+
+end
+```
+![while.png](img/while.png)
+
+### Do While Statement
+
+* text starts with `do` means do-while statement.
+* after `do` block, line starts with `while` is needed.
+
+```
+do
+  get input from user
+while input is invalid
+
+end
+```
+![do-while.png](img/do-while.png)
+
+
+### Break
+
+You can break loop by `break` keyword.
+
+```
+i = 0
+
+while i < n
+  if fruits[i] == 'apple'
+    break
+  i = i + 1
+end
+```
+![break.png](img/break.png)
+
+### Continue
+
+You can use `continue` keyword also.
+
+```
+i = 0
+
+while i < n
+  if user[i] is null
+    continue
+  register user[i]
+  i = i + 1
+
+end
+```
+![continue.png](img/continue.png)
+
 
 ## Author
 
