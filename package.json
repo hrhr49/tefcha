@@ -1,6 +1,6 @@
 {
   "name": "tefcha",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Text to Flowchart.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -36,7 +36,8 @@
     "test": "jest",
     "clean": "rimraf dist umd",
     "spell": "cspell **/*",
-    "demo": "opener demo/index.html"
+    "demo": "opener demo/index.html",
+    "prepublishOnly": "npm-run-all build"
   },
   "keywords": [
     "flowchart",
