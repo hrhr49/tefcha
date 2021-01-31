@@ -1,6 +1,6 @@
 {
   "name": "tefcha",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Text to Flowchart.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -28,6 +28,7 @@
   },
   "scripts": {
     "watch": "parcel debug/index.html --open",
+    "watch-demo": "parcel demo/bundled.html --open",
     "build:umd": "parcel build --experimental-scope-hoisting --detailed-report 10 --target browser browser/main.ts --out-dir umd --out-file tefcha.js",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",

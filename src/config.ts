@@ -182,7 +182,7 @@ const defaultConfig: Config = {
   path: {
     attrs: {
       'stroke': STROKE_COLOR,
-      'fill': STROKE_COLOR,
+      'fill': 'none',
       'stroke-linecap': 'square',
       'stroke-width': '2px',
       'fill-opacity': '0%',

@@ -24,25 +24,6 @@
   <div style="display: flex;">
     <div style="display: flex; flex: row">
       <textarea id="text" cols="80" rows="30">
-# This is a example.
-# NOTE:
-#   The line starts with "#" is comment.
-#   "\n" is newline.
-#   All indent must be "  " (2 white spaces).
-
-Start\nFizzBuzz!
-i = 1
-
-while i <= 100
-  if i % 15 == 0
-    print("FizzBuzz")
-  elif i % 3 == 0
-    print("Fizz")
-  elif i % 5 == 0
-    print("Buzz")
-  else
-    print(i)
-End
       </textarea>
     </div>
     <div>
@@ -56,8 +37,7 @@ End
       <div id="errMsg" class="errMsg"></div>
     </div>
   </div>
-  <!-- <script src="https://unpkg.com/tefcha/umd/tefcha.js"></script> -->
-  <script src="umd/tefcha.js"></script>
+  <script src="../browser/main.ts"></script>
   <script>
     var text = document.getElementById('text');
     var flowchart = document.getElementById('flowchart');
