@@ -23,27 +23,9 @@
   <button id="save-svg">SVG</button>
   <div style="display: flex;">
     <div style="display: flex; flex: row">
-      <textarea id="text" cols="80" rows="30">
-# This is a example.
-# NOTE:
-#   The line starts with "#" is comment.
-#   "\n" is newline.
-#   All indent must be "  " (2 white spaces).
 
-Start\nFizzBuzz!
-i = 1
+  <div id="editor" style="height: 600px; width: 500px; resize: both;" onChange="update()" ></div>
 
-while i <= 100
-  if i % 15 == 0
-    print("FizzBuzz")
-  elif i % 3 == 0
-    print("Fizz")
-  elif i % 5 == 0
-    print("Buzz")
-  else
-    print(i)
-End
-      </textarea>
     </div>
     <div>
       <div id="flowchart" class="tefcha"></div>
@@ -57,7 +39,36 @@ End
     </div>
   </div>
   <script src="https://unpkg.com/tefcha/umd/tefcha.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
+    var defaultSrc = `\
+# This is a example.
+# NOTE:
+#   The line starts with "#" is comment.
+#   "\\n" is newline.
+#   All indent must be "  " (2 white spaces).
+
+Start\\nFizzBuzz!
+i = 1
+
+while i <= 100
+  if i % 15 == 0
+    print("FizzBuzz")
+  elif i % 3 == 0
+    print("Fizz")
+  elif i % 5 == 0
+    print("Buzz")
+  else
+    print(i)
+  i = i + 1
+End
+`;
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.setFontSize(14);
+    editor.getSession().setTabSize(2);
+
+    editor.setValue(defaultSrc, -1);
     var text = document.getElementById('text');
     var flowchart = document.getElementById('flowchart');
     var errMsg = document.getElementById('errMsg');
@@ -168,7 +179,7 @@ End
     };
     var config = defaultConfig;
     var update = () => {
-      var src = text.value;
+      var src = editor.getSession().getValue();
       flowchart.textContent = src;
       try {
         tefcha.initialize(config);
@@ -177,8 +188,10 @@ End
         errMsg.textContent = error.message;
       }
     };
+    editor.getSession().on('change', function() {
+      update()
+    });
     update();
-    text.addEventListener('keyup', () => update());
     document.getElementById('default').addEventListener('click', () => {
       config = defaultConfig;
       update();
