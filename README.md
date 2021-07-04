@@ -90,6 +90,7 @@ while i <= 100
     print("Buzz")
   else
     print(i)
+  i = i + 1
 End
   </div>
   <script src="https://unpkg.com/tefcha/umd/tefcha.js"></script>
@@ -222,6 +223,21 @@ end
 ```
 ![continue.png](img/continue.png)
 
+### Try-Except
+
+You can use `try`, `except` keyword also.
+It's syntax is similar to Python (a kind of programming language).
+
+```
+try
+  calculate()
+except ValueError
+  invalid value
+except ZeroDivisionError
+  value must be != 0
+end
+```
+![try-except.png](img/try-except.png)
 
 ## Author
 
