@@ -1018,15 +1018,16 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
     createFlowchartSub(tryNode, blockFlowchart);
 
     // find frame border bottom y-axis space.
-    const frameBottomY = blockFlowchart.AllocE.findSpace(
+    const frameBottomY_ = blockFlowchart.AllocE.findSpace(
       Math.max(
-        blockFlowchart.y + dy,
-        exceptHlineY + hlineMargin
+        blockFlowchart.y,
+        exceptHlineY
       ),
       hlineMargin
     );
-    blockFlowchart.AllocW.merge(frameBottomY, hlineMargin);
+    blockFlowchart.AllocW.merge(frameBottomY_, hlineMargin);
 
+    const frameBottomY = frameBottomY_ + hlineMargin;
     // step blockFlowchart.
     blockFlowchart.stepAbs(frameBottomY);
 
