@@ -172,6 +172,7 @@ class Renderer {
       )
     );
     svg.append(arrowHeadDef);
+    const backgroundLayer = el('g');
     const frameLayer = el('g');
     const pathLayer = el('g');
     const nodeLayer = el('g');
@@ -194,6 +195,7 @@ class Renderer {
       config,
     });
 
+    svg.append(backgroundLayer);
     svg.append(frameLayer);
     svg.append(pathLayer);
     svg.append(nodeLayer);
@@ -201,6 +203,14 @@ class Renderer {
 
     svg.setAttribute('width', (flowchart.shapes.w + config.flowchart.marginX * 2).toString());
     svg.setAttribute('height', (flowchart.shapes.h + config.flowchart.marginY * 2).toString());
+
+    const backgroundColor = config.flowchart.backgroundColor;
+    if (!['', 'none', 'transparent'].includes(backgroundColor)) {
+      const width = Number(svg.getAttribute('width'));
+      const height = Number(svg.getAttribute('height'));
+      backgroundLayer.append(el('rect', {x: 0, y: 0, width, height, fill: backgroundColor}));
+    }
+
     return svg;
   };
 }

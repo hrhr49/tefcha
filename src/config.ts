@@ -10,6 +10,7 @@ interface Config {
     readonly stepX: number;
     readonly stepY: number;
     readonly hlineMargin: number;
+    readonly backgroundColor: string;
   };
 
   rect: {
@@ -126,6 +127,10 @@ const defaultConfig: Config = {
     //      | bbb |
     //      +-----+
     hlineMargin: 24,
+
+    // NOTE:
+    // '' or 'none' or 'transparent' means no background rectangle.
+    backgroundColor: 'white',
   },
 
   rect: {
