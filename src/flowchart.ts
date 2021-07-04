@@ -313,7 +313,7 @@ class Flowchart {
       S : {x: 0, y: cond.y + cond.h},
     };
 
-    const yesTextSize = this.measureText(yesText);
+    const yesTextSize = this.measureText(yesText, this.config.label.attrs);
     const yesTextX = yesDir !== 'W' 
       ? condPos[yesDir].x + labelMarginX
       : condPos[yesDir].x - labelMarginX - yesTextSize.w;
@@ -324,7 +324,7 @@ class Flowchart {
       text: yesText, isLabel: true,
     }));
 
-    const noTextSize = this.measureText(noText);
+    const noTextSize = this.measureText(noText, this.config.label.attrs);
     const noTextX = noDir !== 'W' 
       ? condPos[noDir].x + labelMarginX
       : condPos[noDir].x - labelMarginX - noTextSize.w;
