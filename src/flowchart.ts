@@ -177,13 +177,13 @@ class Flowchart {
     continues.forEach(point => point.trans( x, 0));
   }
 
-  step = (distance: number = this.dy): void => {
-    this.shapes.add(Path.vline({x: 0, y: this.y, step: distance}));
+  step = (distance: number = this.dy, isArrow: boolean = false): void => {
+    this.shapes.add(Path.vline({x: 0, y: this.y, step: distance, isArrow}));
     this.move(distance);
   }
 
-  stepAbs = (y: number): void => {
-    this.step(y - this.y);
+  stepAbs = (y: number, isArrow: boolean = false): void => {
+    this.step(y - this.y, isArrow);
   }
 
   move = (distance: number = this.dy): void => {
@@ -242,7 +242,7 @@ class Flowchart {
     // keep allocated y-coordinate range.
     this.AllocW.merge(pos, rect.h + hlineMargin);
 
-    this.stepAbs(pos + hlineMargin);
+    this.stepAbs(pos + hlineMargin, true);
     rect.trans(0, this.y);
     this.shapes.add(rect);
     this.move(rect.h);
@@ -301,7 +301,7 @@ class Flowchart {
     AllocW.merge(pos, cond.h + hlineMargin);
     if (jumpE) AllocE.merge(pos + cond.h / 2, hlineMargin);
 
-    stepAbs(pos + hlineMargin);
+    stepAbs(pos + hlineMargin, true);
 
     cond.trans(0, this.y);
     shapes.add(cond);
@@ -985,10 +985,6 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   // to find starting point of exceptHline,
   // we cannnot use createBlockFlowchart directory...
 
-  // TODO:
-  // * draw label
-  // * add style of frame border to dotted rectangle ?
-  // * change exceptHline's style to dotted arrow ?
   const {dx, dy, hlineMargin} = flowchart;
   flowchart.step();
 

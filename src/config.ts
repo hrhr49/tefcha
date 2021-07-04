@@ -203,7 +203,7 @@ const defaultConfig: Config = {
   },
 
   arrowHead: {
-    size: 15,
+    size: 9,
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
