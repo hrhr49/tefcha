@@ -25,31 +25,30 @@ test('parse valid program', () => {
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 
+
   prog = `
-  switch a
-    case b
-      c
-    case d
-      e
+  try
+    a
+  except
+    b
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 
   prog = `
-  switch a
-    case b
-      c
-      break
-    case d
-      e
-      break
+  try
+    a
+  except someError
+    b
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 
   prog = `
-  while c
-    switch a
-      case b
-        continue
+  try
+    a
+  except someErrorB
+    b
+  except someErrorC
+    c
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 });
@@ -153,4 +152,60 @@ test('check to throw error while parsing invalid program', () => {
   `;
   expect(() => {parse(prog, defaultConfig)}).toThrowError();
 
+  prog = `
+  switch a
+    case b
+      c
+    case d
+      e
+  `;
+  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
+  // because it is not implemented yet.
+  // TODO: implement
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
+
+  prog = `
+  switch a
+    case b
+      c
+      break
+    case d
+      e
+      break
+  `;
+  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
+  // because it is not implemented yet.
+  // TODO: implement
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
+
+  prog = `
+  while c
+    switch a
+      case b
+        continue
+  `;
+  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
+  // because it is not implemented yet.
+  // TODO: implement
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
+
+  prog = `
+  try
+    a
+  `;
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('cannot find corresponding keyword "except" to keyword "try".');
+
+  prog = `
+  try
+    a
+  try
+    b
+  `;
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('cannot find corresponding keyword "except" to keyword "try".');
+
+  prog = `
+  except
+    a
+  `;
+  expect(() => {parse(prog, defaultConfig)}).toThrowError('before "except" block, "try" or "except" block should exists.');
 });

@@ -18,6 +18,10 @@ interface Config {
     readonly attrs: any;
   };
 
+  frame: {
+    readonly attrs: any;
+  };
+
   path: {
     readonly attrs: any;
   };
@@ -29,8 +33,6 @@ interface Config {
 
   diamond: {
     readonly aspectRatio: number;
-    readonly labelMarginX: number;
-    readonly labelMarginY: number;
     readonly attrs: any;
   };
 
@@ -38,11 +40,14 @@ interface Config {
     readonly attrs: any;
   }
 
-  // 'yes', 'no' label
+  // * 'yes', 'no' label of if-statement
+  // * exception name of try-except statement
   label: {
     readonly attrs: any;
     readonly yesText: string;
     readonly noText: string;
+    readonly marginX: number;
+    readonly marginY: number;
   }
 }
 
@@ -152,6 +157,16 @@ const defaultConfig: Config = {
     },
   },
 
+  frame: {
+    attrs: {
+      'stroke': STROKE_COLOR,
+      'stroke-dasharray': '2',
+      'fill': FILL_COLOR,
+      'stroke-width': '2px',
+      'fill-opacity': '0%',
+    },
+  },
+
   diamond: {
     //              _
     //          _.-' '-._          ^
@@ -167,9 +182,6 @@ const defaultConfig: Config = {
     // diamondAspectRatio = height / width
 
     aspectRatio: 3 / 4,
-
-    labelMarginX: 1,
-    labelMarginY: 0,
 
     attrs: {
       'stroke': STROKE_COLOR,
@@ -215,6 +227,8 @@ const defaultConfig: Config = {
   label: {
     yesText: 'Y',
     noText: 'N',
+    marginX: 4,
+    marginY: 4,
 
     attrs: {
       'stroke': STROKE_COLOR,
@@ -280,6 +294,15 @@ const mergeDefaultConfig = (config: any = {}): Config => {
       attrs: {
         ...defaultConfig.text.attrs,
         ...(config.text && config.text.attrs || {}),
+      }
+    },
+
+    frame: {
+      ...defaultConfig.frame,
+      ...(config.frame || {}),
+      attrs: {
+        ...defaultConfig.frame.attrs,
+        ...(config.frame && config.frame.attrs || {}),
       }
     },
 

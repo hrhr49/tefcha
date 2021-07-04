@@ -51,7 +51,7 @@ Only these features are supported for now
 * return statement
 
 ## Reserved Word
-* if, elif, else, while, do, for, continue, break, switch, case, pass
+* if, elif, else, while, do, for, continue, break, switch, case, pass, try, except
 
 ## Usage
 
