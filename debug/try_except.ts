@@ -116,6 +116,22 @@ while a
     a
   except e
     continue
+`,
+`
+while a
+  try
+    break
+  except
+    continue
+`,
+`
+while a
+  try
+    a
+    break
+  except
+    try
+    except
 `
 ];
 
