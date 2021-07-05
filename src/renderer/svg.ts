@@ -9,6 +9,7 @@ import {Config, mergeDefaultConfig} from '../config'
 
 
 interface Layers {
+  frameLayer: SVGElement;
   textLayer: SVGElement;
   nodeLayer: SVGElement;
   pathLayer: SVGElement;
@@ -126,6 +127,9 @@ class Renderer {
       case 'rect':
         layers.nodeLayer.append(el('rect', {x, y, width: w, height: h, ...config.rect.attrs}));
         break;
+      case 'frame':
+        layers.frameLayer.append(el('rect', {x, y, width: w, height: h, ...config.frame.attrs}));
+        break;
       case 'diamond':
         layers.nodeLayer.append(el('polygon', {
           points: `${x + w / 2},${y}, ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`,
@@ -135,6 +139,8 @@ class Renderer {
       case 'point':
         break;
       default:
+        const _: never = shape;
+        throw `shape ${_} is invalid`;
     }
   };
 
@@ -166,6 +172,8 @@ class Renderer {
       )
     );
     svg.append(arrowHeadDef);
+    const backgroundLayer = el('g');
+    const frameLayer = el('g');
     const pathLayer = el('g');
     const nodeLayer = el('g');
     const textLayer = el('g');
@@ -178,6 +186,7 @@ class Renderer {
 
     renderShape({
       layers: {
+        frameLayer,
         pathLayer,
         nodeLayer,
         textLayer,
@@ -186,12 +195,22 @@ class Renderer {
       config,
     });
 
+    svg.append(backgroundLayer);
+    svg.append(frameLayer);
     svg.append(pathLayer);
     svg.append(nodeLayer);
     svg.append(textLayer);
 
     svg.setAttribute('width', (flowchart.shapes.w + config.flowchart.marginX * 2).toString());
     svg.setAttribute('height', (flowchart.shapes.h + config.flowchart.marginY * 2).toString());
+
+    const backgroundColor = config.flowchart.backgroundColor;
+    if (!['', 'none', 'transparent'].includes(backgroundColor)) {
+      const width = Number(svg.getAttribute('width'));
+      const height = Number(svg.getAttribute('height'));
+      backgroundLayer.append(el('rect', {x: 0, y: 0, width, height, fill: backgroundColor}));
+    }
+
     return svg;
   };
 }

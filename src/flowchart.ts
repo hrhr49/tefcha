@@ -7,6 +7,7 @@ import {
   Path,
   Text,
   Rect,
+  Frame,
   Diamond,
 } from './shape'
 import {Config} from './config'
@@ -74,14 +75,60 @@ class Flowchart {
   readonly config: Config;
   private readonly measureText: MeasureTextFunc;
   loop: LoopStackInfo;
+
+  // allocator of y-axis 
+  // for 
+  // * arrow acrossing other branches that direction is W (West)
+  // * rectangle or diamond or horizontal line etc...
+  //
+  // For Example
+  //
+  //   branch1                 branch2
+  //       |            |          |       
+  //       |            |          |       
+  //       | object     |          |       
+  //    +-----+         |          |       
+  //    |     |         |          |       
+  //    +-----+         |          |       
+  //       |            |          |       
+  //       |            |          |       
+  //   <---------------------------+
+  //       |            |          |       
+  //       |<-----------+          |       
+  //       | horizontal line       |       
+  //       |                       |       
+  //
+  // When renderring arrow from branch2 to West direction,
+  // We have to avoid the objects and the horizontal lines in branch1.
   AllocW: RangeAllocator;
+
+  // allocator of y-axis 
+  // for arrow acrossing other branches
+  // that direction is E (East).
+  //
+  // For Example
+  //
+  //   branch1    branch2
+  //       |          |       
+  //       |          |       
+  //  ------------------------>              
+  //       |          |       
+  //       |          |       
+  //
+  // When renderring some object or horizontal line in branch2,
+  // We have to avoid the arrow.
   AllocE: RangeAllocator;
+
   alive: boolean;
   readonly dx: number;
   readonly dy: number;
   readonly hlineMargin: number;
-  y: number;
+
+  // NOTE:
+  // * "y" is the y-coordinate of end point.
+  // TODO: rename variable name to understand easliy.
   x: number;
+  y: number;
 
   constructor(
   {
@@ -130,13 +177,13 @@ class Flowchart {
     continues.forEach(point => point.trans( x, 0));
   }
 
-  step = (distance: number = this.dy): void => {
-    this.shapes.add(Path.vline({x: 0, y: this.y, step: distance}));
+  step = (distance: number = this.dy, isArrow: boolean = false): void => {
+    this.shapes.add(Path.vline({x: 0, y: this.y, step: distance, isArrow}));
     this.move(distance);
   }
 
-  stepAbs = (y: number): void => {
-    this.step(y - this.y);
+  stepAbs = (y: number, isArrow: boolean = false): void => {
+    this.step(y - this.y, isArrow);
   }
 
   move = (distance: number = this.dy): void => {
@@ -181,7 +228,7 @@ class Flowchart {
     return new Group({x, y, children: [textShape, wrapShape]});
   }
 
-  private text = ({x, y, text, isLabel}: {x: number, y: number, text: string, isLabel: boolean}): Text => {
+  public text = ({x, y, text, isLabel}: {x: number, y: number, text: string, isLabel: boolean}): Text => {
     return Text.byMeas({x, y, text, attrs: this.config.text.attrs, meas: this.measureText, isLabel});
   }
 
@@ -195,7 +242,7 @@ class Flowchart {
     // keep allocated y-coordinate range.
     this.AllocW.merge(pos, rect.h + hlineMargin);
 
-    this.stepAbs(pos + hlineMargin);
+    this.stepAbs(pos + hlineMargin, true);
     rect.trans(0, this.y);
     this.shapes.add(rect);
     this.move(rect.h);
@@ -227,7 +274,7 @@ class Flowchart {
       hlineMargin,
     } = this;
     const {yesText, noText} = this.config.label;
-    const {labelMarginX, labelMarginY} = this.config.diamond;
+    const {marginX: labelMarginX, marginY: labelMarginY} = this.config.label;
 
     const cond = diamond({x: 0, y: 0, text: content});
     // find the space to put hline and diamond.
@@ -254,7 +301,7 @@ class Flowchart {
     AllocW.merge(pos, cond.h + hlineMargin);
     if (jumpE) AllocE.merge(pos + cond.h / 2, hlineMargin);
 
-    stepAbs(pos + hlineMargin);
+    stepAbs(pos + hlineMargin, true);
 
     cond.trans(0, this.y);
     shapes.add(cond);
@@ -266,14 +313,23 @@ class Flowchart {
       S : {x: 0, y: cond.y + cond.h},
     };
 
+    const yesTextSize = this.measureText(yesText, this.config.label.attrs);
+    const yesTextX = yesDir !== 'W' 
+      ? condPos[yesDir].x + labelMarginX
+      : condPos[yesDir].x - labelMarginX - yesTextSize.w;
+
     shapes.add(text({
-      x: condPos[yesDir].x + labelMarginX,
+      x: yesTextX,
       y: condPos[yesDir].y + labelMarginY,
       text: yesText, isLabel: true,
     }));
 
+    const noTextSize = this.measureText(noText, this.config.label.attrs);
+    const noTextX = noDir !== 'W' 
+      ? condPos[noDir].x + labelMarginX
+      : condPos[noDir].x - labelMarginX - noTextSize.w;
     shapes.add(text({
-      x: condPos[noDir].x + labelMarginX,
+      x: noTextX,
       y: condPos[noDir].y + labelMarginY,
       text: noText, isLabel: true,
     }));
@@ -295,6 +351,9 @@ class Flowchart {
   }
 
   merge = (flowchart: Flowchart): void => {
+    if (Object.is(this, flowchart)) {
+      throw `cannot merge same flowchart`;
+    }
     flowchart.shapes.children.forEach(child => {
       child.trans(flowchart.shapes.x, 0);
       this.shapes.add(child);
@@ -458,8 +517,34 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
         flowchart.alive = false;
         break;
       }
-      case 'for': {
+      case 'try': {
+        const tryNode = child;
+        const exceptNodes: ASTNode[] = [];
+        childIdx++;
+        while (
+          childIdx < childNum &&
+          children[childIdx].type === 'except'
+        ) {
+          exceptNodes.push(children[childIdx]);
+          childIdx++;
+        }
+        createTryExceptFlowchart(tryNode, exceptNodes, flowchart);
+        continue;
+      }
+      case 'program': 
+      case 'none': 
+      case 'else':
+      case 'elif':
+      case 'for': 
+      case 'switch': 
+      case 'case': 
+      case 'except': {
+        throw `child type ${child.type} is not expected. this may be bug...`;
         break;
+      }
+      default: {
+        const _: never = child.type;
+        throw `child type ${_} is invalid.`;
       }
     }
     childIdx++;
@@ -553,9 +638,9 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
     let mergeY: number;
     if (elseFlowchart.alive) {
       const pos = flowchart.AllocE.findSpace(
-        Math.max(ifFlowchart.y, elseFlowchart.y), hlineMargin)
-        flowchart.AllocW.merge(pos, hlineMargin);
-        mergeY = pos + hlineMargin;
+        Math.max(ifFlowchart.y, elseFlowchart.y), hlineMargin);
+      flowchart.AllocW.merge(pos, hlineMargin);
+      mergeY = pos + hlineMargin;
     } else {
       mergeY = Math.max(ifFlowchart.y, elseFlowchart.y);
     }
@@ -820,6 +905,228 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
     });
 
   flowchart.merge(blockFlowchart);
+  // }}}
+}
+
+// const createBlockFlowchart = (node: ASTNode, flowchart: Flowchart, jump: boolean): void => {
+// // {{{
+//   //            |     
+//   //            |
+//   //      +-----+-----+ frame border
+//   //      | +-------+ |
+//   //      | |       | |
+//   //      | |       | |
+//   //      | +-------+ |
+//   //      +-----+-----+
+//   //            |      
+//   //            |      
+
+//   const {dx, dy, hlineMargin} = flowchart;
+
+//   flowchart.step();
+//   const blockFlowchart = flowchart.branch();
+
+//   // find frame border top y-axis space.
+//   const frameTopY = blockFlowchart.AllocE.findSpace(
+//     blockFlowchart.y,
+//     hlineMargin
+//   );
+
+//   blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
+//   blockFlowchart.stepAbs(frameTopY);
+
+//   createFlowchartSub(node, blockFlowchart);
+
+//   // to avoid blockFlowchart's last node, step blockFlowchart.
+//   blockFlowchart.step();
+
+//   // find frame border bottom y-axis space.
+//   const frameBottomY = blockFlowchart.AllocE.findSpace(
+//     blockFlowchart.y,
+//     hlineMargin
+//   );
+//   blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
+
+//   blockFlowchart.shapes.add(
+//     new Rect({
+//       x: blockFlowchart.x + blockFlowchart.shapes.minX - dx,
+//       y: frameTopY,
+//       w: blockFlowchart.shapes.maxX - blockFlowchart.shapes.minX + 2 * dx,
+//       h: frameBottomY - frameTopY,
+//     })
+//   );
+
+//   flowchart.merge(blockFlowchart);
+//   if (!blockFlowchart.alive) flowchart.alive = false;
+
+// // }}}
+// }
+
+const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flowchart: Flowchart): void => {
+// {{{
+  //                     |     
+  //                     | frame border
+  //               +-----+-----+           
+  //               | +-------+ | exceptHline
+  //               | |       | +------+-------------+
+  //   tryShapeGroup |       | |      | error1      | error2
+  //               | |       | |      |             |
+  //               | |       | |      v             v
+  //               | |       | |   +-----+       +-----+ exceptShapGroups
+  //               | +-------+ |   |     |       |     |
+  //               +-----+-----+   +--+--+       +--+--+
+  //                     |            |             |
+  //                     |            |             |
+  //                     |<-----------+-------------+
+  //                     |  mergeHline
+  //                     |
+
+  // NOTE:
+  // to find starting point of exceptHline,
+  // we cannnot use createBlockFlowchart directory...
+
+  const {dx, dy, hlineMargin} = flowchart;
+  flowchart.step();
+
+  const tryFlowchart: Flowchart = flowchart.branch();
+  const exceptFlowcharts: Flowchart[] = exceptNodes.map(() => flowchart.branch());
+
+  let exceptHlineX: number;
+  let exceptHlineY: number;
+
+  {
+    const blockFlowchart = tryFlowchart.branch();
+
+    // find frame border top y-axis space.
+    const frameTopY = blockFlowchart.AllocE.findSpace(
+      blockFlowchart.y,
+      hlineMargin
+    );
+
+    blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
+    blockFlowchart.stepAbs(frameTopY);
+
+    exceptHlineY = blockFlowchart.AllocE.findSpace(
+      blockFlowchart.y + dy,
+      hlineMargin,
+    );
+
+    createFlowchartSub(tryNode, blockFlowchart);
+
+    // find frame border bottom y-axis space.
+    const frameBottomY_ = blockFlowchart.AllocE.findSpace(
+      Math.max(
+        blockFlowchart.y,
+        exceptHlineY
+      ),
+      hlineMargin
+    );
+    blockFlowchart.AllocW.merge(frameBottomY_, hlineMargin);
+
+    const frameBottomY = frameBottomY_ + hlineMargin;
+    // step blockFlowchart.
+    blockFlowchart.stepAbs(frameBottomY);
+
+    exceptHlineX = blockFlowchart.x + blockFlowchart.shapes.maxX + dx;
+    const rectX = blockFlowchart.x + blockFlowchart.shapes.minX - dx;
+    blockFlowchart.shapes.add(
+      new Frame({
+        x: rectX,
+        y: frameTopY,
+        w: exceptHlineX - rectX,
+        h: frameBottomY - frameTopY,
+      })
+    );
+
+    tryFlowchart.merge(blockFlowchart);
+    if (!blockFlowchart.alive) tryFlowchart.alive = false;
+  }
+
+  // change start y-coordinate of exceptFlowcharts
+  exceptFlowcharts.forEach(exceptFlowchart => {
+    exceptFlowchart.moveAbs(exceptHlineY);
+  });
+
+  let prevFlowchart: Flowchart = tryFlowchart;
+  exceptNodes.forEach((exceptNode, idx) => {
+    console.log(exceptNodes.length);
+    const exceptFlowchart: Flowchart = exceptFlowcharts[idx];
+    const startY = exceptFlowchart.y;
+
+    createFlowchartSub(exceptNode, exceptFlowchart);
+
+    const exceptFlowchartX = prevFlowchart.x + prevFlowchart.shapes.maxX + dx - exceptFlowchart.shapes.minX;
+    console.log(exceptFlowchartX);
+
+    exceptFlowchart.shiftX(exceptFlowchartX);
+
+    exceptFlowchart.shapes.add(exceptFlowchart.text({
+      x: exceptFlowchart.config.label.marginX,
+      y: startY + exceptFlowchart.config.label.marginY,
+      text: exceptNode.content, isLabel: true,
+    }));
+
+    prevFlowchart = exceptFlowchart;
+  });
+
+  // draw "exceptHline".
+  tryFlowchart.shapes.add(Path.hline({
+    x: exceptHlineX, y: exceptHlineY,
+    step: exceptFlowcharts.slice(-1)[0].shapes.x - exceptHlineX,
+  }));
+
+  // const loopType = flowchart.loop.type;
+
+  // let isTryFlowchartAlive = tryFlowchart.alive;
+  let isAnyExceptFlowchartAlive = exceptFlowcharts.some(flowchart => flowchart.alive);
+
+  // if any flowchart are alive, find y-axis space for merge position
+  if (isAnyExceptFlowchartAlive) {
+    const aliveFlowchartMaxY = 
+      [tryFlowchart, ...exceptFlowcharts]
+      .filter(flowchart => flowchart.alive)
+      .map(flowchart => flowchart.y)
+      .reduce((prev, cur) => Math.max(prev, cur));
+
+    // find mergeHline's position
+    const pos = flowchart.AllocE.findSpace(
+      aliveFlowchartMaxY,
+      hlineMargin
+    );
+    flowchart.AllocW.merge(pos, hlineMargin);
+    const mergeY = pos + hlineMargin;
+
+    // step all alive flowchart to mergeY.
+    [tryFlowchart, ...exceptFlowcharts]
+      .filter(flowchart => flowchart.alive)
+      .forEach(flowchart => {
+        flowchart.stepAbs(mergeY);
+      });
+
+    const lastAliveFlowchart = exceptFlowcharts
+      .filter(exceptFlowchart => exceptFlowchart.alive)
+      .slice(-1)[0];
+
+    // draw "mergeHline".
+    tryFlowchart.shapes.add(Path.hline({
+      x: lastAliveFlowchart.shapes.x,
+      y: mergeY,
+      step: - lastAliveFlowchart.shapes.x + tryFlowchart.shapes.x,
+      isArrow: tryFlowchart.alive,
+    }));
+  }
+
+  flowchart.merge(tryFlowchart);
+  // exceptFlowcharts.forEach(exceptFlowchart => flowchart.merge(exceptFlowchart));
+  exceptFlowcharts.forEach(exceptFlowchart => flowchart.merge(exceptFlowchart));
+
+  // if all branch are dead, disable "alive" flag.
+  if ([tryFlowchart, ...exceptFlowcharts]
+      .every((flowchart) => !flowchart.alive)
+  ) {
+    flowchart.alive = false;
+  }
+
   // }}}
 }
 

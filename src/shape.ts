@@ -180,6 +180,16 @@ class Rect extends BaseShape {
   }
 }
 
+class Frame extends BaseShape {
+  readonly type: 'frame';
+  constructor({x = 0, y = 0, w, h}
+    : {x?: number; y?: number; w: number; h: number}
+  ) {
+    super({x, y, w, h, maxX: w, maxY: h});
+    this.type = 'frame';
+  }
+}
+
 class Diamond extends BaseShape {
   readonly type: 'diamond';
   constructor({x = 0, y = 0, w, h}
@@ -223,7 +233,9 @@ class Group extends BaseShape {
   }
 }
 
-type Shape = Point | Path | Text | Rect | Diamond | Group;
+type Shape = Point | Path | Text | Rect | Frame | Diamond | Group;
+type ShapeType = Shape['type'];
+
 interface TextSize {
   readonly w: number;
   readonly h: number;
@@ -236,9 +248,11 @@ export {
   Path,
   Text,
   Rect,
+  Frame,
   Diamond,
   Group,
   Shape,
+  ShapeType,
   BaseShape,
   PathCmd,
   MeasureTextFunc,

@@ -3,12 +3,14 @@ import {simpleProgs} from './simple'
 import {ifProgs} from './if'
 import {loopProgs} from './loop'
 import {jumpProgs} from './jump'
+import {tryExceptProgs} from './try_except'
 
 const progs = [
   ...simpleProgs,
   ...ifProgs,
   ...loopProgs,
   ...jumpProgs,
+  ...tryExceptProgs,
 ];
 
 const showSVG = (svg: Element) => {

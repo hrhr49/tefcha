@@ -20,22 +20,39 @@ class TefchaError extends Error {
   }
 }
 
-// indent based AST
-interface ASTNode {
-  type: string;
-  lineno: number;
-  content?: string;
-  children?: ASTNode[];
-}
-
 // after line starts with these, indent should exists
 // except for 'while' of do-while statement.
 const INDENT_KEYWORDS = [
   'if', 'else', 'elif', 'while', 'for', 'do',
-  'switch', 'case'
-];
-const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break', 'pass'];
+  'switch', 'case', 'try', 'except',
+] as const;
+const KEYWORDS = [...INDENT_KEYWORDS, 'continue', 'break', 'pass'] as const;
+const NODE_TYPES = [...KEYWORDS, 'program', 'none', 'text'] as const;
 
+type IndentKeyword = (typeof INDENT_KEYWORDS)[number];
+type Keyword = (typeof KEYWORDS)[number];
+type NodeType = (typeof NODE_TYPES)[number];
+
+const isIndentKeyword = (obj: any): obj is IndentKeyword => {
+  return INDENT_KEYWORDS.includes(obj);
+};
+
+const isKeyword = (obj: any): obj is Keyword => {
+  return KEYWORDS.includes(obj);
+};
+
+// this is not used yet.
+// const isNodeType = (obj: any): obj is NodeType => {
+//   return NODE_TYPES.includes(obj);
+// };
+
+// indent based AST
+interface ASTNode {
+  type: NodeType;
+  lineno: number;
+  content?: string;
+  children?: ASTNode[];
+}
 
 interface LineInfo {
   lineno: number;
@@ -113,14 +130,14 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
     const firstWord = line.split(' ')[0];
 
     // simple text
-    if (!KEYWORDS.includes(firstWord)) {
+    if (!isKeyword(firstWord)) {
       currentNode.children.push({
         type: 'text',
         lineno,
         content: line,
       });
     } else {
-      const newNode = {
+      const newNode: ASTNode = {
         type: firstWord,
         lineno,
         content: line.slice(line.indexOf(' ') + 1),
@@ -132,7 +149,7 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
           null;
       currentNode.children.push(newNode);
 
-      if (INDENT_KEYWORDS.includes(firstWord)) {
+      if (isIndentKeyword(firstWord)) {
         // 'while' of do-while do not have indent
         if (!(lastChildNode && lastChildNode.type === 'do' && firstWord === 'while')) {
           nodeStack.push(newNode);
@@ -152,6 +169,9 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
     switch (child.type) {
       case 'program':
         break;
+      case 'none':
+        throw new TefchaError({lineno, src, msg: `node type "${child.type}" must not be here... this may be bug`});
+        break;
       case 'text':
         break;
       case 'if':
@@ -168,12 +188,19 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'while':
         break;
+      case 'for':
+        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        break;
       case 'switch':
+        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
         break;
       case 'case':
-        if (node.type !== 'switch') {
-          throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
-        }
+        // comment out because it is not implemented yet.
+        // TODO: implement
+        // if (node.type !== 'switch') {
+        //   throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
+        // }
+        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
@@ -192,8 +219,19 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'pass':
         break;
+      case 'try':
+        if (idx + 1 >= children.length || children[idx + 1].type !== 'except') {
+          throw new TefchaError({lineno, src, msg: 'cannot find corresponding keyword "except" to keyword "try".'});
+        }
+        break;
+      case 'except':
+        if (!['try', 'except'].includes(prevChild.type)) {
+          throw new TefchaError({lineno, src, msg: 'before "except" block, "try" or "except" block should exists.'});
+        }
+        break;
       default:
-        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        const _: never = child.type;
+        throw new TefchaError({lineno, src, msg: `node type "${_}" is invalid.`});
     }
     prevChild = child;
   });
