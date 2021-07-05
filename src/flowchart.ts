@@ -409,12 +409,12 @@ class Flowchart {
   }
 
   // to debug
-  // h = (y: number) => {
-  //   this.shapes.add(Path.hline({
-  //     x: 0, y,
-  //     step: 100,
-  //   }));
-  // }
+  h = (y: number) => {
+    this.shapes.add(Path.hline({
+      x: 0, y,
+      step: 100,
+    }));
+  }
   // }}}
 }
 
@@ -994,53 +994,66 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   let exceptHlineX: number;
   let exceptHlineY: number;
 
-  {
-    const blockFlowchart = tryFlowchart.branch();
+  const blockFlowchart = tryFlowchart.branch();
 
-    // find frame border top y-axis space.
-    const frameTopY = blockFlowchart.AllocE.findSpace(
+  // find frame border top y-axis space.
+  const frameTopY = blockFlowchart.AllocE.findSpace(
+    blockFlowchart.y,
+    hlineMargin
+  );
+
+  blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
+  blockFlowchart.stepAbs(frameTopY);
+
+  createFlowchartSub(tryNode, blockFlowchart);
+
+  // NOTE:
+  // Since blockFlowchart.AllocE's pointer has
+  // already gone to forward,
+  // We must use tryFlowchart.AllocE here.
+  const exceptHlineY_ = tryFlowchart.AllocE.findSpace(
+    frameTopY,
+    hlineMargin,
+  );
+  tryFlowchart.AllocW.merge(
+    exceptHlineY_,
+    hlineMargin,
+  );
+  exceptHlineY = exceptHlineY_ + hlineMargin;
+
+  // find frame border bottom y-axis space.
+  const frameBottomY_ = tryFlowchart.AllocE.findSpace(
+    Math.max(
       blockFlowchart.y,
-      hlineMargin
-    );
+      exceptHlineY
+    ),
+    hlineMargin
+  );
+  tryFlowchart.AllocW.merge(frameBottomY_, hlineMargin);
 
-    blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
-    blockFlowchart.stepAbs(frameTopY);
+  const frameBottomY = frameBottomY_ + hlineMargin;
 
-    exceptHlineY = blockFlowchart.AllocE.findSpace(
-      blockFlowchart.y + dy,
-      hlineMargin,
-    );
-
-    createFlowchartSub(tryNode, blockFlowchart);
-
-    // find frame border bottom y-axis space.
-    const frameBottomY_ = blockFlowchart.AllocE.findSpace(
-      Math.max(
-        blockFlowchart.y,
-        exceptHlineY
-      ),
-      hlineMargin
-    );
-    blockFlowchart.AllocW.merge(frameBottomY_, hlineMargin);
-
-    const frameBottomY = frameBottomY_ + hlineMargin;
+  if (blockFlowchart.alive) {
     // step blockFlowchart.
     blockFlowchart.stepAbs(frameBottomY);
-
-    exceptHlineX = blockFlowchart.x + blockFlowchart.shapes.maxX + dx;
-    const rectX = blockFlowchart.x + blockFlowchart.shapes.minX - dx;
-    blockFlowchart.shapes.add(
-      new Frame({
-        x: rectX,
-        y: frameTopY,
-        w: exceptHlineX - rectX,
-        h: frameBottomY - frameTopY,
-      })
-    );
-
-    tryFlowchart.merge(blockFlowchart);
-    if (!blockFlowchart.alive) tryFlowchart.alive = false;
+  } else {
+    // move blockFlowchart.
+    blockFlowchart.moveAbs(frameBottomY);
   }
+
+  exceptHlineX = blockFlowchart.x + blockFlowchart.shapes.maxX + dx;
+  const rectX = blockFlowchart.x + blockFlowchart.shapes.minX - dx;
+  blockFlowchart.shapes.add(
+    new Frame({
+      x: rectX,
+      y: frameTopY,
+      w: exceptHlineX - rectX,
+      h: frameBottomY - frameTopY,
+    })
+  );
+
+  tryFlowchart.merge(blockFlowchart);
+  if (!blockFlowchart.alive) tryFlowchart.alive = false;
 
   // change start y-coordinate of exceptFlowcharts
   exceptFlowcharts.forEach(exceptFlowchart => {
@@ -1049,14 +1062,12 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
 
   let prevFlowchart: Flowchart = tryFlowchart;
   exceptNodes.forEach((exceptNode, idx) => {
-    console.log(exceptNodes.length);
     const exceptFlowchart: Flowchart = exceptFlowcharts[idx];
     const startY = exceptFlowchart.y;
 
     createFlowchartSub(exceptNode, exceptFlowchart);
 
     const exceptFlowchartX = prevFlowchart.x + prevFlowchart.shapes.maxX + dx - exceptFlowchart.shapes.minX;
-    console.log(exceptFlowchartX);
 
     exceptFlowchart.shiftX(exceptFlowchartX);
 
@@ -1082,15 +1093,14 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
 
   // if any flowchart are alive, find y-axis space for merge position
   if (isAnyExceptFlowchartAlive) {
-    const aliveFlowchartMaxY = 
+    const flowchartMaxY = 
       [tryFlowchart, ...exceptFlowcharts]
-      .filter(flowchart => flowchart.alive)
       .map(flowchart => flowchart.y)
       .reduce((prev, cur) => Math.max(prev, cur));
 
     // find mergeHline's position
     const pos = flowchart.AllocE.findSpace(
-      aliveFlowchartMaxY,
+      flowchartMaxY,
       hlineMargin
     );
     flowchart.AllocW.merge(pos, hlineMargin);
@@ -1114,10 +1124,16 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
       step: - lastAliveFlowchart.shapes.x + tryFlowchart.shapes.x,
       isArrow: tryFlowchart.alive,
     }));
+  } else if (tryFlowchart.alive) {
+    // to connect next statement,
+    // we should step "tryFlowchart".
+    const maxY = [tryFlowchart, ...exceptFlowcharts]
+      .map(flowchart => flowchart.y)
+      .reduce((prev, cur) => Math.max(prev, cur));
+    tryFlowchart.stepAbs(maxY);
   }
 
   flowchart.merge(tryFlowchart);
-  // exceptFlowcharts.forEach(exceptFlowchart => flowchart.merge(exceptFlowchart));
   exceptFlowcharts.forEach(exceptFlowchart => flowchart.merge(exceptFlowchart));
 
   // if all branch are dead, disable "alive" flag.
