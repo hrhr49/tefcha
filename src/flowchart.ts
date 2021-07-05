@@ -986,7 +986,6 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   // we cannnot use createBlockFlowchart directory...
 
   const {dx, dy, hlineMargin} = flowchart;
-  flowchart.step();
 
   const tryFlowchart: Flowchart = flowchart.branch();
   const exceptFlowcharts: Flowchart[] = exceptNodes.map(() => flowchart.branch());
@@ -997,12 +996,13 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   const blockFlowchart = tryFlowchart.branch();
 
   // find frame border top y-axis space.
-  const frameTopY = blockFlowchart.AllocE.findSpace(
+  const frameTopY_ = blockFlowchart.AllocE.findSpace(
     blockFlowchart.y,
     hlineMargin
   );
 
-  blockFlowchart.AllocW.merge(frameTopY, hlineMargin);
+  blockFlowchart.AllocW.merge(frameTopY_, hlineMargin);
+  const frameTopY = frameTopY_ + hlineMargin;
   blockFlowchart.stepAbs(frameTopY);
 
   createFlowchartSub(tryNode, blockFlowchart);
