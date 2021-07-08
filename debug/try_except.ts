@@ -132,7 +132,121 @@ while a
   except
     try
     except
+`,
 `
+while GTIa
+  try
+    while XvnJ
+      T
+      lFcG
+      while i
+        try
+          while rYq
+            PF
+        except Fd
+          while Sa
+            try
+              JVxG
+            except qrqVM
+              if UV
+                avaaj
+        except Ndi
+          BJSDe
+        except yXw
+          try
+            gLbmi
+          except rZKRL
+            sBP
+        break
+      break
+    continue
+  except n
+    eu
+    while v
+      try
+        lCPTz
+        continue
+      except nA
+        while e
+          if qZuo
+            bHK
+        break
+      except azJ
+        if y
+          q
+        else
+          THQ
+          m
+      except uaxhm
+        OmG
+        RV
+        r
+        break
+    break
+  except l
+    while KtrW
+      try
+        while NrvS
+          while TCf
+            INH
+            continue
+      except VO
+        k
+        while UZ
+          u
+          while GuETi
+            m
+        break
+      except kkL
+        if oM
+          pCbcb
+        else
+          RGjWV
+      except t
+        if BmH
+          iSQ
+          eANOs
+        break
+    continue
+  except ux
+    CK
+    xn
+    while MwLh
+      try
+        if W
+          while vElip
+            zL
+        continue
+      except ZjJj
+        while H
+          u
+          break
+      except s
+        if KUFqX
+          tQ
+        continue
+      except XTfcl
+        if XKoh
+          P
+          break
+        elif LDN
+          lLlb
+        else
+          pUNO
+    continue
+end
+`,
+`
+while a
+  if b
+    c
+  else
+    a
+    if d
+      continue
+    else
+      break
+`,
 ];
 
 export {tryExceptProgs}

@@ -409,11 +409,19 @@ class Flowchart {
   }
 
   // to debug
-  h = (y: number) => {
+  h = (y: number, text: string = '') => {
+    return;
     this.shapes.add(Path.hline({
       x: 0, y,
       step: 100,
     }));
+    if (text !== '') {
+      this.shapes.add(new Text({
+        content: text,
+        x: 0, y,
+        w: 0, h: 0,
+      }));
+    }
   }
   // }}}
 }
@@ -504,8 +512,21 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       case 'break':
       case 'continue': {
         const direction = jumpDir[loop.type][child.type];
-        const pos = jump ?  (flowchart.y - hlineMargin) :
-          (direction === 'W' ? AllocW : AllocE).findSpace(flowchart.y, hlineMargin);
+        let pos: number;
+        if (jump) {
+          pos = flowchart.y - hlineMargin;
+        } else if (direction === 'W') {
+          pos = flowchart.y;
+          let posPrev = pos - 99999;
+          // find space for both AllocW and AllocE.
+          while (pos !== posPrev) {
+            posPrev = pos;
+            pos = AllocW.findSpace(pos, hlineMargin);
+            pos = AllocE.findSpace(pos, hlineMargin);
+          }
+        } else {
+          pos = AllocE.findSpace(flowchart.y, hlineMargin);
+        }
         
         AllocW.merge(pos, hlineMargin);
         if (direction === 'E') AllocE.merge(pos, hlineMargin);
