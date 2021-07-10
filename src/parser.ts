@@ -192,15 +192,14 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
         break;
       case 'switch':
-        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        if (child.children.length === 0) {
+          throw new TefchaError({lineno, src, msg: 'switch blcok needs at least 1 case blocks'});
+        }
         break;
       case 'case':
-        // comment out because it is not implemented yet.
-        // TODO: implement
-        // if (node.type !== 'switch') {
-        //   throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
-        // }
-        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        if (node.type !== 'switch') {
+          throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
+        }
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
@@ -208,7 +207,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         }
         break;
       case 'break':
-        if (![...parents, node].some(n => ['for', 'while', 'do', 'case'].includes(n.type))) {
+        if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
           throw new TefchaError({lineno, src, msg: '"break" statement should be in loop or "case".'});
         }
         break;

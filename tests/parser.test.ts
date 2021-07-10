@@ -25,6 +25,22 @@ test('parse valid program', () => {
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 
+  prog = `
+  switch a
+    case b
+      c
+    case d
+      e
+  `;
+  expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
+
+  prog = `
+  while c
+    switch a
+      case b
+        continue
+  `;
+  expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
 
   prog = `
   try
@@ -51,6 +67,7 @@ test('parse valid program', () => {
     c
   `;
   expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
+
 });
 
 
@@ -155,39 +172,9 @@ test('check to throw error while parsing invalid program', () => {
   prog = `
   switch a
     case b
-      c
-    case d
-      e
-  `;
-  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
-  // because it is not implemented yet.
-  // TODO: implement
-  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
-
-  prog = `
-  switch a
-    case b
-      c
-      break
-    case d
-      e
       break
   `;
-  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
-  // because it is not implemented yet.
-  // TODO: implement
-  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
-
-  prog = `
-  while c
-    switch a
-      case b
-        continue
-  `;
-  // expect(() => {parse(prog, defaultConfig)}).not.toThrowError();
-  // because it is not implemented yet.
-  // TODO: implement
-  expect(() => {parse(prog, defaultConfig)}).toThrowError('not implemented');
+  expect(() => {parse(prog, defaultConfig)}).toThrowError();
 
   prog = `
   try

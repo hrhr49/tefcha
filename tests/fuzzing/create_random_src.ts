@@ -31,7 +31,7 @@ const randStr = (length: number = 5): string => {
       .fill(null)
       .map(() => randChar())
       .join('');
-    if (!['if', 'elif', 'else', 'while', 'switch', 'do', 'case', 'try', 'except', 'break', 'continue', 'for', 'pass'].includes(ret)) {
+    if (!['if', 'elif', 'else', 'while', 'switch', 'do', 'case', 'try', 'except', 'break', 'continue', 'for', 'pass', 'Y', 'N', 'yes', 'no', 'Yes', 'No'].includes(ret)) {
       return ret;
     }
   }
@@ -46,11 +46,13 @@ const createRandomSrc = ({
   isLooping = false,
   exceptNumMax = 3,
   elifNumMax = 2,
+  caseNumMax = 4,
 }: {
   lineNum?: number,
   isLooping?: boolean,
   exceptNumMax?: number,
   elifNumMax?: number,
+  caseNumMax?: number,
 }): string[] => {
   if (lineNum <= 0) {
     return [];
@@ -64,6 +66,7 @@ const createRandomSrc = ({
   }
   if (lineNum >= 3) {
     items.push('do-while');
+    items.push('switch-case');
   }
   if (lineNum >= 4) {
     items.push('try-except');
@@ -107,7 +110,10 @@ const createRandomSrc = ({
       } else {
         useElse = false;
       }
-      const elifNum = Math.max(0, Math.min(elifNumMax, Math.floor((lineNum - 2 - (useElse ? 2 : 0)) / 2)));
+      const elifNum = randRange(
+        0,
+        Math.max(0, Math.min(elifNumMax, Math.floor((lineNum - 2 - (useElse ? 2 : 0)) / 2))) + 1
+      );
       const blockNum = 1 + (useElse ? 1 : 0) + elifNum;
       const blockLineNumArray = randDist(lineNum - blockNum, blockNum);
       const ret = [
@@ -159,8 +165,32 @@ const createRandomSrc = ({
         `while ${randStr()}`,
       ]
     }
+    case 'switch-case': {
+      const caseNum = randRange(
+        1, 
+        Math.min(caseNumMax, Math.floor((lineNum - 1) / 2)) + 1,
+      );
+      const caseLineNumArray = randDist(lineNum - (1 + caseNum), caseNum);
+
+      const ret = [
+        `switch ${randStr()}`,
+      ];
+      caseLineNumArray.forEach(caseLineNum => {
+        ret.push(
+          `  case ${randStr()}`,
+          ...addIndent(addIndent(createRandomSrc({
+            lineNum: caseLineNum,
+            isLooping,
+          }))),
+        );
+      });
+      return ret;
+    }
     case 'try-except': {
-      const exceptNum = Math.min(exceptNumMax, Math.floor((lineNum - 2) / 2));
+      const exceptNum = randRange(
+        1,
+        Math.min(exceptNumMax, Math.floor((lineNum - 2) / 2)) + 1
+      );
       const blockLineNumArray = randDist(lineNum - (1 + exceptNum), 1 + exceptNum);
       const ret = [
         'try',
