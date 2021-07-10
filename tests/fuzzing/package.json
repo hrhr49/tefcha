@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "parcel build --target browser ../../browser/main.ts --out-dir ./js --out-file tefcha.js",
+    "build": "parcel build --target browser ./browser.ts --out-dir ./js --out-file tefcha.js",
     "fuzzing": "ts-node main.ts",
     "test": "npm-run-all build fuzzing"
   },

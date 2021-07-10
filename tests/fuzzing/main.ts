@@ -17,6 +17,9 @@ import {
 import {
   checkSVGFile,
 } from './svg_extractor';
+import {
+  checkJSONFile,
+} from './json_checker';
 
 declare global {
   interface Window {
@@ -41,13 +44,25 @@ const launch = async (srcs: string[], outputFileBases: string[], config: any) =>
       container.textContent = src;
       try {
         window.tefcha.initialize(config);
+        const json = window.tefcha.renderJSON(
+          {src},
+        );
+        console.log(json);
+        return {
+          status: 'success',
+          json,
+        };
       } catch (error) {
         return {status: 'error', error, message: error.message};
       }
     }, src, config, null);
 
     if (result && result.status === 'error') {
-      console.error(result.message);
+      console.error('E:', result.message);
+    } else if (result && result.status === 'success') {
+      const json = result.json;
+      const outputJSONFile = `result/json/${outputFileBases[i]}.json`;
+      fs.writeFileSync(outputJSONFile, JSON.stringify(json, null, '  '));
     }
 
     try {
@@ -81,6 +96,9 @@ const main = async () => {
   if (!fs.existsSync('result/svg')) {
     fs.mkdirSync('result/svg', {recursive: true});
   }
+  if (!fs.existsSync('result/json')) {
+    fs.mkdirSync('result/json', {recursive: true});
+  }
   if (!fs.existsSync('result/failure/random_src')) {
     fs.mkdirSync('result/failure/random_src', {recursive: true});
   }
@@ -89,6 +107,9 @@ const main = async () => {
   }
   if (!fs.existsSync('result/failure/svg')) {
     fs.mkdirSync('result/failure/svg', {recursive: true});
+  }
+  if (!fs.existsSync('result/failure/json')) {
+    fs.mkdirSync('result/failure/json', {recursive: true});
   }
 
   const srcs: string[] = [];
@@ -115,15 +136,30 @@ const main = async () => {
     const svgFile = `result/svg/${outputFileBase}.svg`;
     const pngFile = `result/png/${outputFileBase}.png`;
     const srcFile = `result/random_src/${outputFileBase}.txt`;
-    const result = checkSVGFile(svgFile, {
-      hlineDistMax: 10 // defaultConfig.flowchart.hlineMargin - 1e-3
+    const jsonFile = `result/json/${outputFileBase}.json`;
+    let failFile = '';
+    let result = checkSVGFile(svgFile, {
+      // NOTE: diamond is skipped
+      hlineDistMax: defaultConfig.flowchart.hlineMargin - 1e-3
     });
+    if (result === 'OK') {
+      result = checkJSONFile(jsonFile, {
+        hlineDistMax: 14 / 2 - 1e-3, // font-size/2 = d(diamondTop - diamondMid)
+      });
+      if (result !== 'OK') {
+        failFile = jsonFile;
+      }
+    } else {
+      failFile = svgFile;
+    }
+
     if (result !== 'OK') {
-      console.log(`fail in ${svgFile}`);
+      console.log(`fail in ${failFile}`);
       console.log(result);
       fs.copyFileSync(svgFile, `result/failure/svg/${outputFileBase}.svg`);
       fs.copyFileSync(pngFile, `result/failure/png/${outputFileBase}.png`);
       fs.copyFileSync(srcFile, `result/failure/random_src/${outputFileBase}.txt`);
+      fs.copyFileSync(jsonFile, `result/failure/json/${outputFileBase}.json`);
       ng++;
     } else {
       ok++;
