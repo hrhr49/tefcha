@@ -11,9 +11,11 @@ import {
   Diamond,
 } from './shape'
 import {Config} from './config'
-import {RangeAllocator, createRangeList} from './range_allocator'
+// import {RangeAllocator, createRangeList} from './range_allocator'
+import {RangeAllocator, createRangeList} from './range_allocator2'
 
 
+const DEBUG = false;
 type LoopType = 'while' | 'doWhile' | 'for' | 'none';
 
 //  Direction
@@ -338,6 +340,22 @@ class Flowchart {
   }
 
   branch = (): Flowchart => {
+    if (DEBUG) {
+      let msg = '';
+      let first = this.AllocW.ranges()[0];
+      let y = Math.round(this.y);
+      if (first) {
+        this.AllocW.ranges().forEach(range => {
+          const start = Math.round(range.start);
+          const end = Math.round(range.end);
+          msg += '\n';
+          msg += `s:${start}, e:${end}`;
+        });
+      } else {
+        msg = 'first is undef';
+      }
+      this.h(this.y, `b:${y}, ${msg}`);
+    }
     return new Flowchart(
     {
       shapes: new Group({x: this.x, y: this.y, children: []}),
@@ -410,7 +428,6 @@ class Flowchart {
 
   // to debug
   h = (y: number, text: string = '') => {
-    return;
     this.shapes.add(Path.hline({
       x: 0, y,
       step: 100,
@@ -864,7 +881,8 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
         .sort((p1, p2) => p1.y < p2.y ? -1 : 1)
         .forEach((p, idx) => {
           shapes.add(new Path({
-            x: p.x, y: p.y, isArrow: true,
+            x: p.x, y: p.y,
+            isArrow: idx !== 0 || blockFlowchart.alive,
             cmds: 
               idx === 0 ?
               [ ['h', skipPathX - p.x],
@@ -875,18 +893,24 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
         });
     }
 
-    const condPos = stepCond({
+    const diamondFlowchart = blockFlowchart.branch();
+    const condPos = diamondFlowchart.stepCond({
       content: whileNode.content,
       yesDir: 'S', noDir: 'E',
       jumpW: false, jumpE: false,
     });
+
+    // NOTE: diamondMaxX = (right side of diamond) + ("no" label of diamond)
+    const diamondMaxX = diamondFlowchart.shapes.maxX;
+    const diamondMinX = diamondFlowchart.shapes.minX;
+    blockFlowchart.merge(diamondFlowchart);
 
     {
       const pos = AllocE.findSpace(blockFlowchart.y, hlineMargin);
       AllocW.merge(pos, hlineMargin);
       stepAbs(pos + hlineMargin);
     }
-    loopBackPathX = Math.min(condPos.W.x, shapes.minX) - dx;
+    loopBackPathX = Math.min(diamondMinX, shapes.minX) - dx;
 
     // loop back path
     shapes.add(new Path({
@@ -898,7 +922,12 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
       ],
     }));
 
-    exitPathX = Math.max(condPos.E.x, shapes.maxX, skipPathX) + dx;
+    if (breaks.length > 0) {
+      exitPathX = Math.max(diamondMaxX, shapes.maxX, skipPathX) + dx;
+    } else {
+      // if no "break"s, no need to avoid shapes and skipPath.
+      exitPathX = diamondMaxX + dx;
+    }
     exitPoints.push(new Point({...condPos.E}));
   } else {
     {
@@ -1254,15 +1283,24 @@ const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], fl
     step: caseFlowcharts.slice(-1)[0].shapes.x,
   }));
 
-  let aliveCaseFlowchartNum = caseFlowcharts
+  const aliveCaseFlowchartNum = caseFlowcharts
     .map(caseFlowchart => (caseFlowchart.alive ? 1 : 0) as number)
     .reduce((prev: number, cur: number) => (prev + cur));
 
+  const flowchartMaxY = caseFlowcharts
+    .map(flowchart => flowchart.y)
+    .reduce((prev, cur) => Math.max(prev, cur));
+
   // if any flowchart are alive, find y-axis space for merge position
-  if (aliveCaseFlowchartNum > 0) {
-    const flowchartMaxY = caseFlowcharts
-      .map(flowchart => flowchart.y)
-      .reduce((prev, cur) => Math.max(prev, cur));
+  if (
+    aliveCaseFlowchartNum > 0
+    &&
+      // if first case is alive and alone, no need to draw mergeHline
+      !(
+        caseFlowcharts[0].alive
+        && aliveCaseFlowchartNum === 1
+      )
+  ) {
 
     // find mergeHline's position
     const pos = flowchart.AllocE.findSpace(
@@ -1283,17 +1321,30 @@ const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], fl
       .filter(caseFlowchart => caseFlowchart.alive)
       .slice(-1)[0];
 
-    if (lastAliveFlowchart.x !== 0) {
-      // draw "mergeHline".
-      blockFlowchart.shapes.add(Path.hline({
-        x: lastAliveFlowchart.shapes.x,
-        y: mergeY,
-        step: - lastAliveFlowchart.shapes.x + blockFlowchart.shapes.x,
-        isArrow: aliveCaseFlowchartNum > 1,
-      }));
-    }
+    // draw "mergeHline".
+    blockFlowchart.shapes.add(Path.hline({
+      x: lastAliveFlowchart.shapes.x,
+      y: mergeY,
+      step: - lastAliveFlowchart.shapes.x + blockFlowchart.shapes.x,
+      isArrow: caseFlowcharts[0].alive,
+    }));
   }
   
+  // NOTE: beceause of mergeHline,
+  // some flowchart might grow from previous flowchartMaxY
+  const flowchartMaxY2 = caseFlowcharts
+    .map(flowchart => flowchart.y)
+    .reduce((prev, cur) => Math.max(prev, cur));
+  // step all flowchart to mergeY.
+  caseFlowcharts
+    .forEach(caseFlowchart => {
+      if (caseFlowchart.alive) {
+        caseFlowchart.stepAbs(flowchartMaxY2);
+      } else {
+        caseFlowchart.moveAbs(flowchartMaxY2);
+      }
+    });
+
   flowchart.merge(blockFlowchart);
   caseFlowcharts.forEach(caseFlowchart => {
     flowchart.merge(caseFlowchart);
