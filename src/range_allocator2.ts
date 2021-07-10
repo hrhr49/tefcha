@@ -122,46 +122,47 @@ class RangeAllocator {
     return prevEnd;
   };
 
-  allocate = (
-    start: number,
-    size: number,
-  ): number => {
-    const rangeStart = this.findSpace(start, size);
-    const rangeEnd = rangeStart + size;
-    const cur = this.head;
-    if (cur.end === rangeStart) {
-      if (cur.next.start === rangeEnd) {
-        // +-----+-------+------+
-        // | cur | range | next |
-        // +-----+-------+------+
-        cur.end = cur.next.end;
-        cur.next = cur.next.next;
-      } else {
-        // +-----+-------+    +------+
-        // | cur | range |    | next |
-        // +-----+-------+    +------+
-        cur.end = rangeEnd;
-      }
-    } else {
-      if (cur.next.start === rangeEnd) {
-        // +-----+   +-------+------+
-        // | cur |   | range | next |
-        // +-----+   +-------+------+
-        cur.next.start = rangeStart;
-      } else {
-        // +-----+   +-------+   +------+
-        // | cur |   | range |   | next |
-        // +-----+   +-------+   +------+
-        const range = {
-          start: rangeStart,
-          end: rangeEnd,
-          next: cur.next,
-        }
-        cur.next = range;
-      }
-    }
-    return rangeStart;
-  };
+  // TODO: fix or remove
+  // allocate = (
+  //   start: number,
+  //   size: number,
+  // ): number => {
+  //   const rangeStart = this.findSpace(start, size);
+  //   const rangeEnd = rangeStart + size;
+  //   const cur = this.head;
+  //   if (cur.end === rangeStart) {
+  //     if (cur.next.start === rangeEnd) {
+  //       // +-----+-------+------+
+  //       // | cur | range | next |
+  //       // +-----+-------+------+
+  //       cur.end = cur.next.end;
+  //       cur.next = cur.next.next;
+  //     } else {
+  //       // +-----+-------+    +------+
+  //       // | cur | range |    | next |
+  //       // +-----+-------+    +------+
+  //       cur.end = rangeEnd;
+  //     }
+  //   } else {
+  //     if (cur.next.start === rangeEnd) {
+  //       // +-----+   +-------+------+
+  //       // | cur |   | range | next |
+  //       // +-----+   +-------+------+
+  //       cur.next.start = rangeStart;
+  //     } else {
+  //       // +-----+   +-------+   +------+
+  //       // | cur |   | range |   | next |
+  //       // +-----+   +-------+   +------+
+  //       const range = {
+  //         start: rangeStart,
+  //         end: rangeEnd,
+  //         next: cur.next,
+  //       }
+  //       cur.next = range;
+  //     }
+  //   }
+  //   return rangeStart;
+  // };
 
   merge = (start: number, size: number): void => {
     //  Allocate range between "start" and "end"
