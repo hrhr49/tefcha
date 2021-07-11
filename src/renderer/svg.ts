@@ -2,7 +2,12 @@ import {parse} from '../parser'
 import {
   TextSize,
   MeasureTextFunc,
-  Shape
+  Shape,
+  Text,
+  Rect,
+  Frame,
+  Diamond,
+  Path,
 } from '../shape'
 import {createFlowchart} from '../flowchart'
 import {Config, mergeDefaultConfig} from '../config'
@@ -23,6 +28,7 @@ interface RenderParam {
 
 class Renderer {
   dummySVG: SVGElement;
+  svg: SVGElement;
   _document: Document;
   src: string;
   config: Config;
@@ -37,6 +43,10 @@ class Renderer {
     this.config = config = mergeDefaultConfig(config);
 
     this.dummySVG = this.el('svg');
+    this.svg = this.el('svg', {
+      version: '1.1',
+      xmlns: 'http://www.w3.org/2000/svg',
+    });
   }
 
   el = (
@@ -46,7 +56,7 @@ class Renderer {
   ): SVGElement => {
     const e = this._document.createElementNS('http://www.w3.org/2000/svg', tagName);
     Object.entries(attrs || {})
-      .forEach(([k, v]) => e.setAttribute(k === 'className' ? 'class' : k, v.toString()));
+      .forEach(([k, v]: [any, any]) => e.setAttribute(k === 'className' ? 'class' : k, v.toString()));
     (children || []).forEach(child => e.append(child));
     return e;
   };
@@ -87,54 +97,27 @@ class Renderer {
     offsetX?: number;
     offsetY?: number;
   }): void => {
-    let {
-      el,
-      createTextSVGElement,
-      renderShape,
-      measureText,
-    } = this;
     const x = offsetX + shape.x;
     const y = offsetY + shape.y;
-    const {w, h} = shape;
 
     switch (shape.type) {
       case 'group':
-        shape.children.forEach(child => renderShape({layers, config, shape: child, offsetX: x, offsetY: y}));
+        shape.children.forEach(child => this.renderShape({layers, config, shape: child, offsetX: x, offsetY: y}));
         break;
       case 'text':
-        layers.textLayer.append(
-          createTextSVGElement(
-            shape.content,
-            {
-              x,
-              y: y + measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).h / 2,
-              'dominant-baseline': 'central',
-              ...(shape.isLabel ? config.label.attrs : config.text.attrs),
-            })
-        );
+        layers.textLayer.append(this.renderText({x, y, shape, config}));
         break;
       case 'path':
-        const m = `M ${x} ${y}`;
-        const l = shape.cmds.map(cmd => cmd.join(' ')).join(' ');
-        //     arrow = 'marker-end="url(#arrow-head)"' if self.is_arrow else ''
-        layers.pathLayer.append(el('path', {
-          d: `${m} ${l}`,
-          ...(shape.isArrow ?
-            {'marker-end': 'url(#arrow-head)'} : {}),
-          ...config.path.attrs,
-        }));
+        layers.pathLayer.append(this.renderPath({x, y, shape, config}));
         break;
       case 'rect':
-        layers.nodeLayer.append(el('rect', {x, y, width: w, height: h, ...config.rect.attrs}));
+        layers.nodeLayer.append(this.renderRect({x, y, shape, config}));
         break;
       case 'frame':
-        layers.frameLayer.append(el('rect', {x, y, width: w, height: h, ...config.frame.attrs}));
+        layers.frameLayer.append(this.renderFrame({x, y, shape, config}));
         break;
       case 'diamond':
-        layers.nodeLayer.append(el('polygon', {
-          points: `${x + w / 2},${y}, ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`,
-          ...config.diamond.attrs,
-        }));
+        layers.nodeLayer.append(this.renderDiamond({x, y, shape, config}));
         break;
       case 'point':
         break;
@@ -144,12 +127,100 @@ class Renderer {
     }
   };
 
+  renderText = ({
+    x,
+    y,
+    shape,
+    config
+  }: {
+    x: number,
+    y: number,
+    shape: Text,
+    config: Config
+  }): SVGElement => {
+    return this.createTextSVGElement(
+      shape.content,
+      {
+        x,
+        y: y + this.measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).h / 2,
+        'dominant-baseline': 'central',
+        ...(shape.isLabel ? config.label.attrs : config.text.attrs),
+      })
+  }
+
+  renderRect = ({
+    x,
+    y,
+    shape,
+    config,
+  }: {
+    x: number,
+    y: number,
+    shape: Rect,
+    config: Config,
+  }): SVGElement => {
+    const {w, h} = shape;
+    return this.el('rect', {x, y, width: w, height: h, ...config.rect.attrs})
+  }
+
+  renderFrame = ({
+    x,
+    y,
+    shape,
+    config,
+  }: {
+    x: number,
+    y: number,
+    shape: Frame,
+    config: Config,
+  }): SVGElement => {
+    const {w, h} = shape;
+    return this.el('rect', {x, y, width: w, height: h, ...config.frame.attrs})
+  }
+
+  renderDiamond = ({
+    x,
+    y,
+    shape,
+    config,
+  }: {
+    x: number,
+    y: number,
+    shape: Diamond,
+    config: Config,
+  }): SVGElement => {
+    const {w, h} = shape;
+    return this.el('polygon', {
+      points: `${x + w / 2},${y}, ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`,
+      ...config.diamond.attrs,
+    })
+  }
+
+  renderPath = ({
+    x,
+    y,
+    shape,
+    config,
+  }: {
+    x: number,
+    y: number,
+    shape: Path,
+    config: Config,
+  }): SVGElement => {
+    const m = `M ${x} ${y}`;
+    const l = shape.cmds.map(cmd => cmd.join(' ')).join(' ');
+    //     arrow = 'marker-end="url(#arrow-head)"' if self.is_arrow else ''
+    return this.el('path', {
+      d: `${m} ${l}`,
+      ...(shape.isArrow ?
+          {'marker-end': 'url(#arrow-head)'} : {}),
+      ...config.path.attrs,
+    });
+  }
+
   render = () => {
     let {src, config, el, measureText, renderShape} = this;
-    const svg = this.el('svg', {
-      version: '1.1',
-      xmlns: 'http://www.w3.org/2000/svg',
-    });
+    const svg = this.svg;
     const arrowHeadDef = el('defs', null,
       el('marker',
         {
