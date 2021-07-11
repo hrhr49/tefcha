@@ -167,7 +167,9 @@ end
 
 ### Switch-Case Statement
 
-`switch` block contains `case` block.
+You can use switch-case statement by `switch` block and `case` block.
+
+NOTE: Unlike switch-case in C language, you cannot use "break" at the end of case block.
 
 ```
 switch fruit
