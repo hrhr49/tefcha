@@ -37,7 +37,7 @@ class Renderer {
   ): SVGElement => {
     const e = this._document.createElementNS('http://www.w3.org/2000/svg', tagName);
     Object.entries(attrs || {})
-      .forEach(([k, v]) => e.setAttribute(k === 'className' ? 'class' : k, v.toString()));
+      .forEach(([k, v]: [any, any]) => e.setAttribute(k === 'className' ? 'class' : k, v.toString()));
     (children || []).forEach(child => e.append(child));
     return e;
   };
@@ -108,7 +108,7 @@ class Renderer {
 
   render = () => {
     let {src, config, measureText, renderShape} = this;
-    const jsonOutput = [];
+    const jsonOutput: any[] = [];
 
     const flowchart = createFlowchart({
       node: parse(src, config),
