@@ -14,11 +14,11 @@ import {
 import {
   defaultConfig,
 } from '../../src/config';
+// import {
+//   checkSVGFile,
+// } from './svg_extractor';
 import {
-  checkSVGFile,
-} from './svg_extractor';
-import {
-  checkJSONFile,
+  checkJSONObj,
 } from './json_checker';
 
 declare global {
@@ -83,7 +83,7 @@ const launch = async (srcs: string[], outputFileBases: string[], config: any) =>
 };
 
 const main = async () => {
-  const N = 1000;
+  const N = 100;
   const lineNumMax = 500;
 
   rimraf.sync('result');
@@ -138,14 +138,18 @@ const main = async () => {
     const srcFile = `result/random_src/${outputFileBase}.txt`;
     const jsonFile = `result/json/${outputFileBase}.json`;
     let failFile = '';
-    let result = checkSVGFile(svgFile, {
-      // NOTE: diamond is skipped
-      hlineDistMax: defaultConfig.flowchart.hlineMargin - 1e-3
-    });
+    let result = 'OK';
+    // result = checkSVGFile(svgFile, {
+    //   // NOTE: diamond is skipped
+    //   hlineDistMax: defaultConfig.flowchart.hlineMargin - 1e-3
+    // });
     if (result === 'OK') {
-      result = checkJSONFile(jsonFile, {
-        hlineDistMax: 14 / 2 - 1e-3, // font-size/2 = d(diamondTop - diamondMid)
-      });
+      result = checkJSONObj(
+        JSON.parse(fs.readFileSync(jsonFile, 'utf-8')),
+        {
+          hlineDistMax: 14 / 2 - 1e-3, // font-size/2 = d(diamondTop - diamondMid)
+        }
+      );
       if (result !== 'OK') {
         failFile = jsonFile;
       }

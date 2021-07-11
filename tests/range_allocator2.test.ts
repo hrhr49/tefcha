@@ -45,41 +45,6 @@ test('test findSpace', () => {
 });
 
 
-test('test allocate', () => {
-  // TODO: fix or remove implementation
-  // const rangeList = createRangeList();
-  // const allocator = new RangeAllocator(rangeList);
-  // expect(allocator.allocate(0, 1)).toBe(0);
-  // expect(rangeList).toEqual(createRangeList([0, 1]));
-
-  // expect(allocator.allocate(0, 2)).toBe(1);
-  // expect(rangeList).toEqual(createRangeList([0, 3]));
-
-  // // keep current ref.
-  // const branch = allocator.clone();
-
-  // expect(allocator.allocate(6, 1)).toBe(6);
-  // expect(rangeList).toEqual(createRangeList([0, 3], [6, 7]));
-
-  // expect(allocator.allocate(0, 3)).toBe(7);
-  // expect(rangeList).toEqual(createRangeList([0, 3], [6, 10]));
-
-  // // ref is moved forward already.
-  // expect(allocator.allocate(0, 1)).toBe(10);
-  // expect(rangeList).toEqual(createRangeList([0, 3], [6, 11]));
-
-  // expect(branch.allocate(0, 1)).toBe(3);
-  // expect(rangeList).toEqual(createRangeList([0, 4], [6, 11]));
-
-  // // keep current ref.
-  // const branch2 = branch.clone();
-  // expect(branch2.allocate(5, 1)).toBe(5);
-  // expect(rangeList).toEqual(createRangeList([0, 4], [5, 11]));
-
-  // expect(branch.allocate(1, 1)).toBe(4);
-  // expect(rangeList).toEqual(createRangeList([0, 11]));
-});
-
 test('test merge', () => {
   const rangeList = createRangeList();
   const allocator = new RangeAllocator(rangeList);

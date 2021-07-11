@@ -26,10 +26,10 @@ type LoopType = 'while' | 'doWhile' | 'for' | 'none';
 //         |
 //         v
 //         S
-type Direction = 'N' | 'S' | 'E' | 'W';
+// type Direction = 'N' | 'S' | 'E' | 'W';
 
 interface CondInfo {
-  readonly dir: Direction;
+  readonly dir: 'W' | 'S' | 'E';
   readonly jump: boolean;
 };
 
@@ -54,7 +54,7 @@ const jumpDir = {
     'continue': 'W',
   },
 // }}}
-};
+} as const;
 
 class LoopStackInfo {
   readonly type: LoopType;
@@ -262,8 +262,8 @@ class Flowchart {
     :
     {
       content: string,
-      yesDir: Direction,
-      noDir: Direction,
+      yesDir: 'W' | 'S' | 'E',
+      noDir: 'W' | 'S' | 'E',
       jumpW: boolean,
       jumpE: boolean,
       stepY?: number,
@@ -528,6 +528,9 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       }
       case 'break':
       case 'continue': {
+        if (loop.type === 'none') {
+          throw 'loop type must not be none here.';
+        }
         const direction = jumpDir[loop.type][child.type];
         let pos: number;
         if (jump) {
@@ -583,7 +586,7 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       case 'case': 
       case 'except': {
         throw `child type ${child.type} is not expected. this may be bug...`;
-        break;
+        // break;
       }
       default: {
         const _: never = child.type;
@@ -630,6 +633,9 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
   if (ifNode.children.length > 0) {
     const type = ifNode.children[0].type;
     if (type === 'break' || type === 'continue') {
+      if (loopType === 'none') {
+          throw 'loop type must not be none here.';
+      }
       yes = {dir: jumpDir[loopType][type], jump: true};
       // if "yes" direction is not "S", default "no" direction is "S".
       no = {dir: 'S', jump: false};
@@ -644,6 +650,9 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
   ) {
     const type = nodes[1].children[0].type;
     if (type === 'break' || type === 'continue') {
+      if (loopType === 'none') {
+          throw 'loop type must not be none here.';
+      }
       const dir = jumpDir[loopType][type];
       if (dir !== yes.dir) no = {dir, jump: true};
     }
@@ -841,7 +850,7 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
 
   const blockFlowchart = flowchart.branch();
   const {
-    moveAbs, stepAbs, dx, dy, stepCond,
+    moveAbs, stepAbs, dx, dy,
     shapes, withLoop,
     AllocW, AllocE,
     hlineMargin,

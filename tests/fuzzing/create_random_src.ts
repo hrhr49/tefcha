@@ -1,7 +1,7 @@
-import * as fs from 'fs'
+// import * as fs from 'fs'
 
-import {parse} from '../../src/parser'
-import {defaultConfig} from '../../src/config'
+// import {parse} from '../../src/parser'
+// import {defaultConfig} from '../../src/config'
 
 const randRange = (start: number, end: number): number => {
   return start + Math.floor(Math.random() * (end - start));
@@ -211,7 +211,7 @@ const createRandomSrc = ({
       return ret;
     }
     default: {
-      console.error(`invalid item ${item}`);
+      throw `invalid item ${item}`;
     }
   }
 }

@@ -1,9 +1,19 @@
-import * as fs from 'fs';
+interface Hline {
+  x1: number;
+  x2: number;
+  y: number;
+}
+
+interface Vline {
+  y1: number;
+  y2: number;
+  x: number;
+}
 
 
 const extractItemFromJSON = (jsonObj: any[]): any => {
-  const hlines = [];
-  const vlines = [];
+  const hlines: Hline[] = [];
+  const vlines: Vline[] = [];
 
   jsonObj.forEach(shape => {
     switch(shape.type) {
@@ -66,14 +76,14 @@ const extractItemFromJSON = (jsonObj: any[]): any => {
   };
 };
 
-const isIntersect = (start1, end1, start2, end2) => {
+const isIntersect = (start1: number, end1: number, start2: number, end2: number): boolean => {
   return (
     (start1 >= start2 && start1 <= end2)
     || (start2 >= start1 && start2 <= end1)
   );
 };
 
-const distanceHLines = (hline1, hline2): number => {
+const distanceHLines = (hline1: Hline, hline2: Hline): number => {
   let {x1: x11, x2: x12, y: y1} = hline1;
   let {x1: x21, x2: x22, y: y2} = hline2;
   if (isIntersect(x11, x12, x21, x22)) {
@@ -89,10 +99,9 @@ const distanceHLines = (hline1, hline2): number => {
   }
 };
 
-const checkJSONFile = (filename: string, {hlineDistMax}: any): string => {
-  const jsonObj = JSON.parse(fs.readFileSync(filename, 'utf-8'));
+const checkJSONObj = (jsonObj: any, {hlineDistMax}: any): string => {
   let ret = 'OK';
-  const {hlines, vlines} = extractItemFromJSON(jsonObj);
+  const {hlines} = extractItemFromJSON(jsonObj);
   for (let i = 0; i < hlines.length; i++ ) {
     for (let j = i + 1; j < hlines.length; j++ ) {
       const hline1 = hlines[i];
@@ -107,5 +116,5 @@ const checkJSONFile = (filename: string, {hlineDistMax}: any): string => {
 };
 
 export {
-  checkJSONFile,
+  checkJSONObj,
 }
