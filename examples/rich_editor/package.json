@@ -4,7 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "watch": "parcel ./index.html --open"
+    "watch": "parcel ./index.html --open",
+    "clean": "rimraf umd",
+    "build": "parcel build --detailed-report 10 ./index.html --out-dir umd"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.5.0",
@@ -20,6 +22,8 @@
   "devDependencies": {
     "@types/react": "^17.0.14",
     "@types/react-dom": "^17.0.9",
-    "parcel-bundler": "^1.12.5"
+    "npm-run-all": "^4.1.5",
+    "parcel-bundler": "^1.12.5",
+    "rimraf": "^3.0.2"
   }
 }

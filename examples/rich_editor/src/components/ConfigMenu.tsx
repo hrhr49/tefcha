@@ -313,6 +313,7 @@ const ConfigMenu = ({
             onChange={onChange}
             onSubmit={onSubmit}
             onError={onError}
+            liveValidate={true}
           />
         </ListItem>
       </List>
