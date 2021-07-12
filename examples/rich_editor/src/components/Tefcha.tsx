@@ -31,7 +31,7 @@ const Tefcha = ({
       {/* tefchaResultSVG.setAttribute('height', 400); */}
       {/* const r = tefchaResultSVG.getElementsByTagName('svg'); */}
       const r = tefchaResultSVG;
-      console.log(r);
+      // console.log(r);
       {/* .setAttribute('width', 400); */}
       {/* tefchaResultSVG.height = 400; */}
       const div = document.getElementById('tefcha') as HTMLDivElement;

@@ -1,5 +1,5 @@
 const downloadAsPNGFile = (svgEl: SVGElement) => {
-  console.log('Download PNG');
+  // console.log('Download PNG');
   const svgData = new XMLSerializer().serializeToString(svgEl);
   const canvas = document.createElement("canvas");
   canvas.width = (svgEl as any).width.baseVal.value;
@@ -19,7 +19,7 @@ const downloadAsPNGFile = (svgEl: SVGElement) => {
 };
 
 const downloadAsSVGFile = (svgEl: SVGElement) => {
-  console.log('Download SVG');
+  // console.log('Download SVG');
   const svgData = new XMLSerializer().serializeToString(svgEl);
   let blob = new Blob([svgData], {type: "image/svg"});
   let a = document.createElement("a");
