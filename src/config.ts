@@ -52,9 +52,7 @@ interface Config {
   }
 }
 
-const OPACITY = '100%';
 const STROKE_COLOR = 'black';
-const FILL_COLOR = 'white';
 
 const defaultConfig: Config = {
   src: {
@@ -156,19 +154,17 @@ const defaultConfig: Config = {
 
     attrs: {
       'stroke': STROKE_COLOR,
-      'fill': FILL_COLOR,
+      'fill': 'none',
       'stroke-width': '2px',
-      'fill-opacity': '0%',
     },
   },
 
   frame: {
     attrs: {
       'stroke': STROKE_COLOR,
+      'fill': 'none',
       'stroke-dasharray': '2',
-      'fill': FILL_COLOR,
       'stroke-width': '2px',
-      'fill-opacity': '0%',
     },
   },
 
@@ -190,8 +186,7 @@ const defaultConfig: Config = {
 
     attrs: {
       'stroke': STROKE_COLOR,
-      'fill': FILL_COLOR,
-      'fill-opacity': '0%',
+      'fill': 'none',
       'stroke-width': '2px',
     },
   },
@@ -202,8 +197,6 @@ const defaultConfig: Config = {
       'fill': 'none',
       'stroke-linecap': 'square',
       'stroke-width': '2px',
-      'fill-opacity': '0%',
-      'stroke-opacity': OPACITY,
     },
   },
 
@@ -212,7 +205,6 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'stroke-width': '0px',
     },
   },
@@ -221,7 +213,6 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'font-size': '14px',
       'stroke-width': '0',
       /* font-weight': 'lighter', */
@@ -238,7 +229,6 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'font-size': '10px',
       'font-weight': 'lighter',
     },
