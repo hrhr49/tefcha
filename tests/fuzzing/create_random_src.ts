@@ -124,7 +124,7 @@ const createRandomSrc = ({
         })),
       ];
       if (elifNum > 0) {
-        blockLineNumArray.slice(1, -1).forEach(blockLineNum => {
+        blockLineNumArray.slice(1, 1 + elifNum).forEach(blockLineNum => {
           ret.push(
             `elif ${randStr()}`,
             ...addIndent(createRandomSrc({
