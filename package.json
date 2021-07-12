@@ -37,7 +37,7 @@
     "clean": "rimraf dist umd",
     "spell": "cspell **/*",
     "demo": "opener demo/index.html",
-    "prepublishOnly": "npm-run-all build"
+    "prepublishOnly": "npm-run-all clean build"
   },
   "keywords": [
     "flowchart",

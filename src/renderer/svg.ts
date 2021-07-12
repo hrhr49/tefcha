@@ -272,14 +272,20 @@ class Renderer {
     svg.append(nodeLayer);
     svg.append(textLayer);
 
-    svg.setAttribute('width', (flowchart.shapes.w + config.flowchart.marginX * 2).toString());
-    svg.setAttribute('height', (flowchart.shapes.h + config.flowchart.marginY * 2).toString());
+    // (x, y) have been moved to (0, 0) in createFlowchart().
+    const svgX = 0;
+    const svgY = 0;
+    const svgWidth = flowchart.shapes.w + config.flowchart.marginX * 2;
+    const svgHeight = flowchart.shapes.h + config.flowchart.marginY * 2;
 
+
+    svg.setAttribute('width', String(svgWidth));
+    svg.setAttribute('height', String(svgHeight));
+
+    svg.setAttribute('viewBox', `${svgX} ${svgY} ${svgWidth} ${svgHeight}`);
     const backgroundColor = config.flowchart.backgroundColor;
     if (!['', 'none', 'transparent'].includes(backgroundColor)) {
-      const width = Number(svg.getAttribute('width'));
-      const height = Number(svg.getAttribute('height'));
-      backgroundLayer.append(el('rect', {x: 0, y: 0, width, height, fill: backgroundColor}));
+      backgroundLayer.append(el('rect', {x: 0, y: 0, width: svgWidth, height: svgHeight, fill: backgroundColor}));
     }
 
     return svg;

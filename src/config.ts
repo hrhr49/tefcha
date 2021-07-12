@@ -245,81 +245,83 @@ const defaultConfig: Config = {
   },
 };
 
-const mergeDefaultConfig = (config: any = {}): Config => {
+const mergeConfig = (baseConfig: Config, config: any = {}): Config => {
   return {
     src: {
-      ...defaultConfig.src,
+      ...baseConfig.src,
       ...(config.src || {}),
     },
 
     flowchart: {
-      ...defaultConfig.flowchart,
+      ...baseConfig.flowchart,
       ...(config.flowchart || {}),
     },
 
     rect: {
-      ...defaultConfig.rect,
+      ...baseConfig.rect,
       ...(config.rect || {}),
       attrs: {
-        ...defaultConfig.rect.attrs,
+        ...baseConfig.rect.attrs,
         ...(config.rect && config.rect.attrs || {}),
       }
     },
 
     diamond: {
-      ...defaultConfig.diamond,
+      ...baseConfig.diamond,
       ...(config.diamond || {}),
       attrs: {
-        ...defaultConfig.diamond.attrs,
+        ...baseConfig.diamond.attrs,
         ...(config.diamond && config.diamond.attrs || {}),
       }
     },
 
     path: {
-      ...defaultConfig.path,
+      ...baseConfig.path,
       ...(config.path || {}),
       attrs: {
-        ...defaultConfig.path.attrs,
+        ...baseConfig.path.attrs,
         ...(config.path && config.path.attrs || {}),
       }
     },
 
     arrowHead: {
-      ...defaultConfig.arrowHead,
+      ...baseConfig.arrowHead,
       ...(config.arrowHead || {}),
       attrs: {
-        ...defaultConfig.arrowHead.attrs,
+        ...baseConfig.arrowHead.attrs,
         ...(config.arrowHead && config.arrowHead.attrs || {}),
       }
     },
 
     text: {
-      ...defaultConfig.text,
+      ...baseConfig.text,
       ...(config.text || {}),
       attrs: {
-        ...defaultConfig.text.attrs,
+        ...baseConfig.text.attrs,
         ...(config.text && config.text.attrs || {}),
       }
     },
 
     frame: {
-      ...defaultConfig.frame,
+      ...baseConfig.frame,
       ...(config.frame || {}),
       attrs: {
-        ...defaultConfig.frame.attrs,
+        ...baseConfig.frame.attrs,
         ...(config.frame && config.frame.attrs || {}),
       }
     },
 
     label: {
-      ...defaultConfig.label,
+      ...baseConfig.label,
       ...(config.label || {}),
       attrs: {
-        ...defaultConfig.label.attrs,
+        ...baseConfig.label.attrs,
         ...(config.label && config.label.attrs || {}),
       }
     },
   }
 };
 
-export {Config, defaultConfig, mergeDefaultConfig}
+const mergeDefaultConfig = (config: any = {}): Config => mergeConfig(defaultConfig, config);
+
+export {Config, defaultConfig, mergeConfig, mergeDefaultConfig}
