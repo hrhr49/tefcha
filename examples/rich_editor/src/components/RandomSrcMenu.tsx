@@ -12,8 +12,6 @@ import {
   CollapseListItem,
 } from './CollapseListItem';
 
-// TODO: remove error message from form if it is OK.
-
 interface IRandomSrcMenuProps {
   onRandomSrc: (param: any) => void;
   classes: any;
@@ -38,6 +36,11 @@ const randomSrcSchema = {
       "default": 3,
     },
     "elifNumMax": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 2,
+    },
+    "caseNumMin": {
       "type": "integer",
       "minimum": 0,
       "default": 2,
@@ -91,6 +94,9 @@ const randomSrcUiSchema = {
   "elifNumMax": {
     "ui:widget": "updown"
   },
+  "caseNumMin": {
+    "ui:widget": "updown"
+  },
   "caseNumMax": {
     "ui:widget": "updown"
   }
@@ -101,6 +107,7 @@ const randomSrcInitialFormData = {
   "randStrLength": 5,
   "exceptNumMax": 3,
   "elifNumMax": 2,
+  "caseNumMin": 2,
   "caseNumMax": 4,
   "useIf": true,
   "useWhile": true,
@@ -136,6 +143,7 @@ const RandomSrcMenu = ({
             formData={formData}
             uiSchema={randomSrcUiSchema}
             onSubmit={onSubmit}
+            liveValidate={true}
           />
         </ListItem>
       </List>

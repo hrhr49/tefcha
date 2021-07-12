@@ -46,6 +46,7 @@ const createRandomSrc = ({
   randStrLength = 5,
   exceptNumMax = 3,
   elifNumMax = 2,
+  caseNumMin = 2,
   caseNumMax = 4,
   useIf = true,
   useWhile = true,
@@ -59,6 +60,7 @@ const createRandomSrc = ({
   randStrLength?: number,
   exceptNumMax?: number,
   elifNumMax?: number,
+  caseNumMin?: number,
   caseNumMax?: number,
   useIf?: boolean,
   useWhile?: boolean,
@@ -73,7 +75,8 @@ const createRandomSrc = ({
   randStrLength = Math.max(1, randStrLength);
   exceptNumMax = Math.max(0, exceptNumMax);
   elifNumMax = Math.max(0, elifNumMax);
-  caseNumMax = Math.max(0, caseNumMax);
+  caseNumMin = Math.max(0, caseNumMin);
+  caseNumMax = Math.max(caseNumMin, caseNumMax);
 
   const _randStr = () => randStr(randStrLength);
 
@@ -108,13 +111,15 @@ const createRandomSrc = ({
       if (useDoWhile) {
         items.push('do-while');
       }
-      if (useSwitchCase) {
-        items.push('switch-case');
-      }
     }
     if (lineNum >= 4) {
       if (useTryExcept) {
         items.push('try-except');
+      }
+    }
+    if (lineNum >= caseNumMin * 2 + 1) {
+      if (useSwitchCase) {
+        items.push('switch-case');
       }
     }
 
@@ -213,7 +218,7 @@ const createRandomSrc = ({
       }
       case 'switch-case': {
         const caseNum = randRange(
-          1, 
+          caseNumMin, 
           Math.min(caseNumMax, Math.floor((lineNum - 1) / 2)) + 1,
         );
         const caseLineNumArray = randDist(lineNum - (1 + caseNum), caseNum);
