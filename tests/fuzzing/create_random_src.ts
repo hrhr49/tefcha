@@ -43,177 +43,225 @@ const addIndent = (lines: string[]): string[] => {
 
 const createRandomSrc = ({
   lineNum = 10,
-  isLooping = false,
+  randStrLength = 5,
   exceptNumMax = 3,
   elifNumMax = 2,
   caseNumMax = 4,
+  useIf = true,
+  useWhile = true,
+  useDoWhile = true,
+  useBreak = true,
+  useContinue = true,
+  useSwitchCase = true,
+  useTryExcept = true,
 }: {
   lineNum?: number,
-  isLooping?: boolean,
+  randStrLength?: number,
   exceptNumMax?: number,
   elifNumMax?: number,
   caseNumMax?: number,
+  useIf?: boolean,
+  useWhile?: boolean,
+  useDoWhile?: boolean,
+  useBreak?: boolean,
+  useContinue?: boolean,
+  useSwitchCase?: boolean,
+  useTryExcept?: boolean,
 }): string[] => {
-  if (lineNum <= 0) {
-    return [];
-  }
-  const items: string[] = ['simple'];
-  if (lineNum >= 2) {
-    items.push('if', 'while');
-    if (isLooping) {
-      items.push('continue', 'break');
-    }
-  }
-  if (lineNum >= 3) {
-    items.push('do-while');
-    items.push('switch-case');
-  }
-  if (lineNum >= 4) {
-    items.push('try-except');
-  }
 
-  const item = items[randRange(0, items.length)];
-  // console.log(lineNum);
-  // console.log(item);
-  switch (item) {
-    case 'simple': {
-      return [
-        randStr(),
-        ...createRandomSrc({
-          lineNum: lineNum - 1,
-          isLooping
-        }),
-      ]
+  lineNum = Math.max(0, lineNum);
+  randStrLength = Math.max(1, randStrLength);
+  exceptNumMax = Math.max(0, exceptNumMax);
+  elifNumMax = Math.max(0, elifNumMax);
+  caseNumMax = Math.max(0, caseNumMax);
+
+  const _randStr = () => randStr(randStrLength);
+
+  const _createRandomSrc = ({
+    lineNum,
+    isLooping = false,
+  }: {
+    lineNum: number,
+    isLooping?: boolean,
+  }): string[] => {
+    if (lineNum <= 0) {
+      return [];
     }
-    case 'continue': {
-      return [
-        ...createRandomSrc({
-          lineNum: lineNum - 1,
-          isLooping: false
-        }),
-        'continue',
-      ]
-    }
-    case 'break': {
-      return [
-        ...createRandomSrc({
-          lineNum: lineNum - 1,
-          isLooping: false
-        }),
-        'break',
-      ]
-    }
-    case 'if': {
-      let useElse: boolean
-      if (lineNum >= 4) {
-        useElse = randChoice([true, false]);
-      } else {
-        useElse = false;
+    const items: string[] = ['simple'];
+    if (lineNum >= 2) {
+      if (useIf) {
+        items.push('if');
       }
-      const elifNum = randRange(
-        0,
-        Math.max(0, Math.min(elifNumMax, Math.floor((lineNum - 2 - (useElse ? 2 : 0)) / 2))) + 1
-      );
-      const blockNum = 1 + (useElse ? 1 : 0) + elifNum;
-      const blockLineNumArray = randDist(lineNum - blockNum, blockNum);
-      const ret = [
-        `if ${randStr()}`,
-        ...addIndent(createRandomSrc({
-          lineNum: blockLineNumArray[0],
-          isLooping,
-        })),
-      ];
-      if (elifNum > 0) {
-        blockLineNumArray.slice(1, 1 + elifNum).forEach(blockLineNum => {
+      if (useWhile) {
+        items.push('while');
+      }
+      if (isLooping) {
+        if (useContinue) {
+          items.push('continue');
+        }
+        if (useBreak) {
+          items.push('break');
+        }
+      }
+    }
+    if (lineNum >= 3) {
+      if (useDoWhile) {
+        items.push('do-while');
+      }
+      if (useSwitchCase) {
+        items.push('switch-case');
+      }
+    }
+    if (lineNum >= 4) {
+      if (useTryExcept) {
+        items.push('try-except');
+      }
+    }
+
+    const item = items[randRange(0, items.length)];
+    // console.log(lineNum);
+    // console.log(item);
+    switch (item) {
+      case 'simple': {
+        return [
+          _randStr(),
+          ..._createRandomSrc({
+            lineNum: lineNum - 1,
+            isLooping
+          }),
+        ]
+      }
+      case 'continue': {
+        return [
+          ..._createRandomSrc({
+            lineNum: lineNum - 1,
+            isLooping: false
+          }),
+          'continue',
+        ]
+      }
+      case 'break': {
+        return [
+          ..._createRandomSrc({
+            lineNum: lineNum - 1,
+            isLooping: false
+          }),
+          'break',
+        ]
+      }
+      case 'if': {
+        let useElse: boolean
+        if (lineNum >= 4) {
+          useElse = randChoice([true, false]);
+        } else {
+          useElse = false;
+        }
+        const elifNum = randRange(
+          0,
+          Math.max(0, Math.min(elifNumMax, Math.floor((lineNum - 2 - (useElse ? 2 : 0)) / 2))) + 1
+        );
+        const blockNum = 1 + (useElse ? 1 : 0) + elifNum;
+        const blockLineNumArray = randDist(lineNum - blockNum, blockNum);
+        const ret = [
+          `if ${_randStr()}`,
+          ...addIndent(_createRandomSrc({
+            lineNum: blockLineNumArray[0],
+            isLooping,
+          })),
+        ];
+        if (elifNum > 0) {
+          blockLineNumArray.slice(1, 1 + elifNum).forEach(blockLineNum => {
+            ret.push(
+              `elif ${_randStr()}`,
+              ...addIndent(_createRandomSrc({
+                lineNum: blockLineNum,
+                isLooping,
+              })),
+            )
+          });
+        }
+        if (useElse) {
           ret.push(
-            `elif ${randStr()}`,
-            ...addIndent(createRandomSrc({
+            'else',
+            ...addIndent(_createRandomSrc({
+              lineNum: blockLineNumArray.slice(-1)[0],
+              isLooping,
+            })),
+          );
+        }
+
+        return ret;
+      }
+      case 'while': {
+        return [
+          `while ${_randStr()}`,
+          ...addIndent(_createRandomSrc({
+            lineNum: lineNum - 1,
+            isLooping: true,
+          })),
+        ]
+      }
+      case 'do-while': {
+        return [
+          'do',
+          ...addIndent(_createRandomSrc({
+            lineNum: lineNum - 2,
+            isLooping: true,
+          })),
+          `while ${_randStr()}`,
+        ]
+      }
+      case 'switch-case': {
+        const caseNum = randRange(
+          1, 
+          Math.min(caseNumMax, Math.floor((lineNum - 1) / 2)) + 1,
+        );
+        const caseLineNumArray = randDist(lineNum - (1 + caseNum), caseNum);
+
+        const ret = [
+          `switch ${_randStr()}`,
+        ];
+        caseLineNumArray.forEach(caseLineNum => {
+          ret.push(
+            `  case ${_randStr()}`,
+            ...addIndent(addIndent(_createRandomSrc({
+              lineNum: caseLineNum,
+              isLooping,
+            }))),
+          );
+        });
+        return ret;
+      }
+      case 'try-except': {
+        const exceptNum = randRange(
+          1,
+          Math.min(exceptNumMax, Math.floor((lineNum - 2) / 2)) + 1
+        );
+        const blockLineNumArray = randDist(lineNum - (1 + exceptNum), 1 + exceptNum);
+        const ret = [
+          'try',
+          ...addIndent(_createRandomSrc({
+            lineNum: blockLineNumArray[0],
+            isLooping,
+          })),
+        ];
+        blockLineNumArray.slice(1).forEach(blockLineNum => {
+          ret.push(
+            `except ${_randStr()}`,
+            ...addIndent(_createRandomSrc({
               lineNum: blockLineNum,
               isLooping,
             })),
           )
         });
+        return ret;
       }
-      if (useElse) {
-        ret.push(
-          'else',
-          ...addIndent(createRandomSrc({
-            lineNum: blockLineNumArray.slice(-1)[0],
-            isLooping,
-          })),
-        );
+      default: {
+        throw `invalid item ${item}`;
       }
-
-      return ret;
-    }
-    case 'while': {
-      return [
-        `while ${randStr()}`,
-        ...addIndent(createRandomSrc({
-          lineNum: lineNum - 1,
-          isLooping: true,
-        })),
-      ]
-    }
-    case 'do-while': {
-      return [
-        'do',
-        ...addIndent(createRandomSrc({
-          lineNum: lineNum - 2,
-          isLooping: true,
-        })),
-        `while ${randStr()}`,
-      ]
-    }
-    case 'switch-case': {
-      const caseNum = randRange(
-        1, 
-        Math.min(caseNumMax, Math.floor((lineNum - 1) / 2)) + 1,
-      );
-      const caseLineNumArray = randDist(lineNum - (1 + caseNum), caseNum);
-
-      const ret = [
-        `switch ${randStr()}`,
-      ];
-      caseLineNumArray.forEach(caseLineNum => {
-        ret.push(
-          `  case ${randStr()}`,
-          ...addIndent(addIndent(createRandomSrc({
-            lineNum: caseLineNum,
-            isLooping,
-          }))),
-        );
-      });
-      return ret;
-    }
-    case 'try-except': {
-      const exceptNum = randRange(
-        1,
-        Math.min(exceptNumMax, Math.floor((lineNum - 2) / 2)) + 1
-      );
-      const blockLineNumArray = randDist(lineNum - (1 + exceptNum), 1 + exceptNum);
-      const ret = [
-        'try',
-        ...addIndent(createRandomSrc({
-          lineNum: blockLineNumArray[0],
-          isLooping,
-        })),
-      ];
-      blockLineNumArray.slice(1).forEach(blockLineNum => {
-        ret.push(
-          `except ${randStr()}`,
-          ...addIndent(createRandomSrc({
-            lineNum: blockLineNum,
-            isLooping,
-          })),
-        )
-      });
-      return ret;
-    }
-    default: {
-      throw `invalid item ${item}`;
     }
   }
+  return _createRandomSrc({lineNum});
 }
 
 // for (let i = 0; i < 10000; i++) {

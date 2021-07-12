@@ -22,7 +22,7 @@ import { Tefcha } from './Tefcha';
 import { ExportMenu } from './ExportMenu';
 import { ThemeMenu } from './ThemeMenu';
 import { ConfigMenu } from './ConfigMenu';
-import { OtherMenu } from './OtherMenu';
+import { RandomSrcMenu } from './RandomSrcMenu';
 
 import {
   downloadAsPNGFile,
@@ -38,11 +38,11 @@ import {
 } from '../../../../tests/fuzzing/create_random_src';
 
 
-const createRandomSrcWithComment = () => {
+const createRandomSrcWithComment = (param: any) => {
   return [
     '# This code is generated randomly',
     '',
-    ...createRandomSrc({lineNum: 30}),
+    ...createRandomSrc(param),
     'end'
   ].join('\n');
 };
@@ -135,7 +135,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const App = () => {
   const classes = useStyles();
-  const [src, setSrc] = React.useState(createRandomSrcWithComment());
+  const [src, setSrc] = React.useState(createRandomSrcWithComment({lineNum: 20}));
   const [errMsg, setErrMsg] = React.useState('');
   const [errLineNo, setErrLineNo] = React.useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -178,8 +178,8 @@ const App = () => {
     }
   };
 
-  const onRandomSrc = React.useCallback(() => {
-    setSrc(createRandomSrcWithComment());
+  const onRandomSrc = React.useCallback((param: any) => {
+    setSrc(createRandomSrcWithComment(param));
   }, [src, setSrc]);
 
   return (
@@ -230,7 +230,7 @@ const App = () => {
             onChange={({formData}: any) => {setTefchaConfig(formData)}}
             formData={tefchaConfig}
           />
-          <OtherMenu
+          <RandomSrcMenu
             classes={classes}
             onRandomSrc={onRandomSrc}
           />
