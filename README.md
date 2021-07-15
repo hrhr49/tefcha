@@ -41,13 +41,14 @@ npm install tefcha-cli
 Only these features are supported for now
 
 * if, elif, else statements
+* switch-case statement
 * while, do-while statements
-* break, continue statement.
+* break, continue statement
+* try-except statement
 
 ## Not Supported (for now)
 
 * for statement
-* swich-case statement
 * return statement
 
 ## Reserved Word
@@ -163,6 +164,25 @@ end
 ```
 
 ![if-elif-else.png](img/if-elif-else.png)
+
+### Switch-Case Statement
+
+You can use switch-case statement by `switch` block and `case` block.
+
+NOTE: Unlike switch-case in C language, you cannot use "break" at the end of case block.
+
+```
+switch fruit
+  case apple
+    red
+  case banana
+    yellow
+  case grape
+    purple
+end
+```
+
+![switch-case.png](img/switch-case.png)
 
 ### While Statement
 

@@ -14,6 +14,7 @@ import {Config} from './config'
 import {RangeAllocator, createRangeList} from './range_allocator'
 
 
+const DEBUG = false;
 type LoopType = 'while' | 'doWhile' | 'for' | 'none';
 
 //  Direction
@@ -24,10 +25,10 @@ type LoopType = 'while' | 'doWhile' | 'for' | 'none';
 //         |
 //         v
 //         S
-type Direction = 'N' | 'S' | 'E' | 'W';
+// type Direction = 'N' | 'S' | 'E' | 'W';
 
 interface CondInfo {
-  readonly dir: Direction;
+  readonly dir: 'W' | 'S' | 'E';
   readonly jump: boolean;
 };
 
@@ -52,7 +53,7 @@ const jumpDir = {
     'continue': 'W',
   },
 // }}}
-};
+} as const;
 
 class LoopStackInfo {
   readonly type: LoopType;
@@ -207,7 +208,7 @@ class Flowchart {
     });
   }
 
-  private diamond = ({x, y, text}: {x: number, y: number, text: string}): Shape => {
+  public diamond = ({x, y, text}: {x: number, y: number, text: string}): Shape => {
     const {w: tw, h: th} = this.measureText(text, this.config.text.attrs);
     const ratio = this.config.diamond.aspectRatio;
     const w = tw + th / ratio;
@@ -260,8 +261,8 @@ class Flowchart {
     :
     {
       content: string,
-      yesDir: Direction,
-      noDir: Direction,
+      yesDir: 'W' | 'S' | 'E',
+      noDir: 'W' | 'S' | 'E',
       jumpW: boolean,
       jumpE: boolean,
       stepY?: number,
@@ -338,6 +339,22 @@ class Flowchart {
   }
 
   branch = (): Flowchart => {
+    if (DEBUG) {
+      let msg = '';
+      let first = this.AllocW.ranges()[0];
+      let y = Math.round(this.y);
+      if (first) {
+        this.AllocW.ranges().forEach(range => {
+          const start = Math.round(range.start);
+          const end = Math.round(range.end);
+          msg += '\n';
+          msg += `s:${start}, e:${end}`;
+        });
+      } else {
+        msg = 'first is undef';
+      }
+      this.h(this.y, `b:${y}, ${msg}`);
+    }
     return new Flowchart(
     {
       shapes: new Group({x: this.x, y: this.y, children: []}),
@@ -409,11 +426,18 @@ class Flowchart {
   }
 
   // to debug
-  h = (y: number) => {
+  h = (y: number, text: string = '') => {
     this.shapes.add(Path.hline({
       x: 0, y,
       step: 100,
     }));
+    if (text !== '') {
+      this.shapes.add(new Text({
+        content: text,
+        x: 0, y,
+        w: 0, h: 0,
+      }));
+    }
   }
   // }}}
 }
@@ -503,9 +527,25 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
       }
       case 'break':
       case 'continue': {
+        if (loop.type === 'none') {
+          throw 'loop type must not be none here.';
+        }
         const direction = jumpDir[loop.type][child.type];
-        const pos = jump ?  (flowchart.y - hlineMargin) :
-          (direction === 'W' ? AllocW : AllocE).findSpace(flowchart.y, hlineMargin);
+        let pos: number;
+        if (jump) {
+          pos = flowchart.y - hlineMargin;
+        } else if (direction === 'W') {
+          pos = flowchart.y;
+          let posPrev = pos - 99999;
+          // find space for both AllocW and AllocE.
+          while (pos !== posPrev) {
+            posPrev = pos;
+            pos = AllocW.findSpace(pos, hlineMargin);
+            pos = AllocE.findSpace(pos, hlineMargin);
+          }
+        } else {
+          pos = AllocE.findSpace(flowchart.y, hlineMargin);
+        }
         
         AllocW.merge(pos, hlineMargin);
         if (direction === 'E') AllocE.merge(pos, hlineMargin);
@@ -531,16 +571,21 @@ const createFlowchartSub = (node: ASTNode, flowchart: Flowchart, jump: boolean =
         createTryExceptFlowchart(tryNode, exceptNodes, flowchart);
         continue;
       }
+      case 'switch': {
+        const switchNode = child;
+        const caseNodes: ASTNode[] = switchNode.children;
+        createSwitchCaseFlowchart(switchNode, caseNodes, flowchart);
+        break;
+      }
       case 'program': 
       case 'none': 
       case 'else':
       case 'elif':
       case 'for': 
-      case 'switch': 
       case 'case': 
       case 'except': {
         throw `child type ${child.type} is not expected. this may be bug...`;
-        break;
+        // break;
       }
       default: {
         const _: never = child.type;
@@ -587,6 +632,9 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
   if (ifNode.children.length > 0) {
     const type = ifNode.children[0].type;
     if (type === 'break' || type === 'continue') {
+      if (loopType === 'none') {
+          throw 'loop type must not be none here.';
+      }
       yes = {dir: jumpDir[loopType][type], jump: true};
       // if "yes" direction is not "S", default "no" direction is "S".
       no = {dir: 'S', jump: false};
@@ -601,6 +649,9 @@ const createIfFlowchart = (nodes: ASTNode[], flowchart: Flowchart, jump: boolean
   ) {
     const type = nodes[1].children[0].type;
     if (type === 'break' || type === 'continue') {
+      if (loopType === 'none') {
+          throw 'loop type must not be none here.';
+      }
       const dir = jumpDir[loopType][type];
       if (dir !== yes.dir) no = {dir, jump: true};
     }
@@ -798,7 +849,7 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
 
   const blockFlowchart = flowchart.branch();
   const {
-    moveAbs, stepAbs, dx, dy, stepCond,
+    moveAbs, stepAbs, dx, dy,
     shapes, withLoop,
     AllocW, AllocE,
     hlineMargin,
@@ -838,7 +889,8 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
         .sort((p1, p2) => p1.y < p2.y ? -1 : 1)
         .forEach((p, idx) => {
           shapes.add(new Path({
-            x: p.x, y: p.y, isArrow: true,
+            x: p.x, y: p.y,
+            isArrow: idx !== 0 || blockFlowchart.alive,
             cmds: 
               idx === 0 ?
               [ ['h', skipPathX - p.x],
@@ -849,18 +901,24 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
         });
     }
 
-    const condPos = stepCond({
+    const diamondFlowchart = blockFlowchart.branch();
+    const condPos = diamondFlowchart.stepCond({
       content: whileNode.content,
       yesDir: 'S', noDir: 'E',
       jumpW: false, jumpE: false,
     });
+
+    // NOTE: diamondMaxX = (right side of diamond) + ("no" label of diamond)
+    const diamondMaxX = diamondFlowchart.shapes.maxX;
+    const diamondMinX = diamondFlowchart.shapes.minX;
+    blockFlowchart.merge(diamondFlowchart);
 
     {
       const pos = AllocE.findSpace(blockFlowchart.y, hlineMargin);
       AllocW.merge(pos, hlineMargin);
       stepAbs(pos + hlineMargin);
     }
-    loopBackPathX = Math.min(condPos.W.x, shapes.minX) - dx;
+    loopBackPathX = Math.min(diamondMinX, shapes.minX) - dx;
 
     // loop back path
     shapes.add(new Path({
@@ -872,7 +930,12 @@ const createDoWhileFlowchart = (doNode: ASTNode, whileNode: ASTNode, flowchart: 
       ],
     }));
 
-    exitPathX = Math.max(condPos.E.x, shapes.maxX, skipPathX) + dx;
+    if (breaks.length > 0) {
+      exitPathX = Math.max(diamondMaxX, shapes.maxX, skipPathX) + dx;
+    } else {
+      // if no "break"s, no need to avoid shapes and skipPath.
+      exitPathX = diamondMaxX + dx;
+    }
     exitPoints.push(new Point({...condPos.E}));
   } else {
     {
@@ -985,7 +1048,7 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   // to find starting point of exceptHline,
   // we cannnot use createBlockFlowchart directory...
 
-  const {dx, dy, hlineMargin} = flowchart;
+  const {dx, hlineMargin} = flowchart;
 
   const tryFlowchart: Flowchart = flowchart.branch();
   const exceptFlowcharts: Flowchart[] = exceptNodes.map(() => flowchart.branch());
@@ -1144,6 +1207,162 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   }
 
   // }}}
+}
+
+const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], flowchart: Flowchart): void => {
+// {{{
+  //                 |
+  //                 |
+  //             _.-' '-._ 
+  //            '-._   _.-'
+  //                '+'
+  //                 | caseHline
+  //                 +----------------+--------------+
+  //                 | case0Label     | case1Label   | case2Label
+  //              +--+--+          +--+--+        +--+--+
+  //              |     |          |     |        |     |
+  //              +--+--+          +--+--+        +--+--+
+  //                 |                |              |
+  //                 |                |              |
+  //                 |<---------------+--------------+
+  //                 | mergeHline
+  //
+  const {dx, hlineMargin} = flowchart;
+
+  const blockFlowchart = flowchart.branch();
+  const caseFlowcharts: Flowchart[] = caseNodes.map(() => flowchart.branch());
+
+  const diamond = blockFlowchart.diamond({
+    x: 0,
+    y: 0,
+    text: switchNode.content,
+  });
+
+  // find y-axis space to put vline+diamond+vline
+  const _diamondTop = blockFlowchart.AllocE.findSpace(
+    flowchart.y,
+    hlineMargin + diamond.h + hlineMargin,
+  );
+  blockFlowchart.AllocW.merge(
+    _diamondTop,
+    hlineMargin + diamond.h + hlineMargin,
+  );
+  const diamondTop = _diamondTop + hlineMargin;
+
+  blockFlowchart.stepAbs(diamondTop, true);
+
+  blockFlowchart.move(diamond.h);
+  // draw diamond
+  diamond.trans(0, diamondTop);
+  blockFlowchart.shapes.add(diamond);
+  blockFlowchart.step(hlineMargin);
+
+  const caseHlineY = blockFlowchart.y;
+
+  // change start y-coordinate of exceptFlowcharts
+  caseFlowcharts.forEach(caseFlowchart => {
+    caseFlowchart.moveAbs(caseHlineY);
+  });
+
+  let prevFlowchartMaxAbsX = 0;
+  caseNodes.forEach((caseNode, idx) => {
+    const caseFlowchart: Flowchart = caseFlowcharts[idx];
+    const startY = caseFlowchart.y;
+
+    createFlowchartSub(caseNode, caseFlowchart);
+
+    const caseFlowchartX = idx === 0 ? 0 : prevFlowchartMaxAbsX + dx - caseFlowchart.shapes.minX;
+
+    caseFlowchart.shiftX(caseFlowchartX);
+
+    caseFlowchart.shapes.add(caseFlowchart.text({
+      x: caseFlowchart.config.label.marginX,
+      y: startY + caseFlowchart.config.label.marginY,
+      text: caseNode.content, isLabel: true,
+    }));
+
+    prevFlowchartMaxAbsX = caseFlowchart.x + caseFlowchart.shapes.maxX;
+  });
+
+  // draw "caseHline"
+  blockFlowchart.shapes.add(Path.hline({
+    x: 0,
+    y: caseHlineY,
+    step: caseFlowcharts.slice(-1)[0].shapes.x,
+  }));
+
+  const aliveCaseFlowchartNum = caseFlowcharts
+    .map(caseFlowchart => (caseFlowchart.alive ? 1 : 0) as number)
+    .reduce((prev: number, cur: number) => (prev + cur));
+
+  const flowchartMaxY = caseFlowcharts
+    .map(flowchart => flowchart.y)
+    .reduce((prev, cur) => Math.max(prev, cur));
+
+  // if any flowchart are alive, find y-axis space for merge position
+  if (
+    aliveCaseFlowchartNum > 0
+    &&
+      // if first case is alive and alone, no need to draw mergeHline
+      !(
+        caseFlowcharts[0].alive
+        && aliveCaseFlowchartNum === 1
+      )
+  ) {
+
+    // find mergeHline's position
+    const pos = flowchart.AllocE.findSpace(
+      flowchartMaxY,
+      hlineMargin
+    );
+    flowchart.AllocW.merge(pos, hlineMargin);
+    const mergeY = pos + hlineMargin;
+
+    // step all alive flowchart to mergeY.
+    caseFlowcharts
+      .filter(caseFlowchart => caseFlowchart.alive)
+      .forEach(caseFlowchart => {
+        caseFlowchart.stepAbs(mergeY);
+      });
+
+    const lastAliveFlowchart = caseFlowcharts
+      .filter(caseFlowchart => caseFlowchart.alive)
+      .slice(-1)[0];
+
+    // draw "mergeHline".
+    blockFlowchart.shapes.add(Path.hline({
+      x: lastAliveFlowchart.shapes.x,
+      y: mergeY,
+      step: - lastAliveFlowchart.shapes.x + blockFlowchart.shapes.x,
+      isArrow: caseFlowcharts[0].alive,
+    }));
+  }
+  
+  // NOTE: beceause of mergeHline,
+  // some flowchart might grow from previous flowchartMaxY
+  const flowchartMaxY2 = caseFlowcharts
+    .map(flowchart => flowchart.y)
+    .reduce((prev, cur) => Math.max(prev, cur));
+  // step all flowchart to mergeY.
+  caseFlowcharts
+    .forEach(caseFlowchart => {
+      if (caseFlowchart.alive) {
+        caseFlowchart.stepAbs(flowchartMaxY2);
+      } else {
+        caseFlowchart.moveAbs(flowchartMaxY2);
+      }
+    });
+
+  flowchart.merge(blockFlowchart);
+  caseFlowcharts.forEach(caseFlowchart => {
+    flowchart.merge(caseFlowchart);
+  });
+
+  // if all branch are dead, disable "alive" flag.
+  if (aliveCaseFlowchartNum === 0) {
+    flowchart.alive = false;
+  }
+// }}}
 }
 
 export {

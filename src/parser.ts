@@ -2,6 +2,11 @@ import {Config} from './config'
 
 
 class TefchaError extends Error {
+  lineno: number | null;
+  msg: string;
+  src: string;
+  type: 'tefcha';
+
   constructor({lineno, msg, src = ''}: {lineno?: number; msg: string; src?: string}) {
     const RANGE_LINES = 5
     let mainMsg = msg;
@@ -9,7 +14,7 @@ class TefchaError extends Error {
       mainMsg = `at line ${lineno}: ${mainMsg}`;
     }
     let positionInfo = '';
-    if (src && lineno > 0) {
+    if (src && lineno !== undefined && lineno > 0) {
       positionInfo = src.split(/\n/)
         .map((line, idx) => ({lineno: idx + 1, line}))
         .slice(Math.max(0, lineno - 1 - RANGE_LINES), lineno - 1 + RANGE_LINES)
@@ -17,6 +22,10 @@ class TefchaError extends Error {
         .join('\n');
     }
     super(`${mainMsg}\n${positionInfo}`);
+    this.lineno = lineno ?? null;
+    this.msg = msg;
+    this.src = src;
+    this.type = 'tefcha';
   }
 }
 
@@ -50,8 +59,8 @@ const isKeyword = (obj: any): obj is Keyword => {
 interface ASTNode {
   type: NodeType;
   lineno: number;
-  content?: string;
-  children?: ASTNode[];
+  content: string;
+  children: ASTNode[];
 }
 
 interface LineInfo {
@@ -112,7 +121,12 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
 };
 
 const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
-  const rootNode: ASTNode = {type: 'program', lineno: 0, children: []};
+  const rootNode: ASTNode = {
+    type: 'program',
+    lineno: 0,
+    content: '',
+    children: [],
+  };
   let nodeStack: ASTNode[] = [rootNode]; // stack to keep parents
 
   lineInfoList.forEach(({lineno, line, nest}) => {
@@ -135,6 +149,7 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
         type: 'text',
         lineno,
         content: line,
+        children: [],
       });
     } else {
       const newNode: ASTNode = {
@@ -163,7 +178,12 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
 const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
   const children = node.children || [];
 
-  let prevChild: ASTNode = {type: 'none', lineno: -1};
+  let prevChild: ASTNode = {
+    type: 'none',
+    lineno: -1,
+    content: '',
+    children: [],
+  };
   children.forEach((child, idx) => {
     const {lineno} = child;
     switch (child.type) {
@@ -171,7 +191,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'none':
         throw new TefchaError({lineno, src, msg: `node type "${child.type}" must not be here... this may be bug`});
-        break;
+        // break;
       case 'text':
         break;
       case 'if':
@@ -190,17 +210,16 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         break;
       case 'for':
         throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
-        break;
+        // break;
       case 'switch':
-        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        if (child.children.length === 0) {
+          throw new TefchaError({lineno, src, msg: 'switch blcok needs at least 1 case blocks'});
+        }
         break;
       case 'case':
-        // comment out because it is not implemented yet.
-        // TODO: implement
-        // if (node.type !== 'switch') {
-        //   throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
-        // }
-        throw new TefchaError({lineno, src, msg: `node type "${child.type}" is not implemented yet.`});
+        if (node.type !== 'switch') {
+          throw new TefchaError({lineno, src, msg: 'keyword "case" should be in "switch" statement.'});
+        }
         break;
       case 'continue':
         if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
@@ -208,7 +227,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         }
         break;
       case 'break':
-        if (![...parents, node].some(n => ['for', 'while', 'do', 'case'].includes(n.type))) {
+        if (![...parents, node].some(n => ['for', 'while', 'do'].includes(n.type))) {
           throw new TefchaError({lineno, src, msg: '"break" statement should be in loop or "case".'});
         }
         break;

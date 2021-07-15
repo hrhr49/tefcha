@@ -52,9 +52,7 @@ interface Config {
   }
 }
 
-const OPACITY = '100%';
 const STROKE_COLOR = 'black';
-const FILL_COLOR = 'white';
 
 const defaultConfig: Config = {
   src: {
@@ -156,19 +154,17 @@ const defaultConfig: Config = {
 
     attrs: {
       'stroke': STROKE_COLOR,
-      'fill': FILL_COLOR,
+      'fill': 'none',
       'stroke-width': '2px',
-      'fill-opacity': '0%',
     },
   },
 
   frame: {
     attrs: {
       'stroke': STROKE_COLOR,
+      'fill': 'none',
       'stroke-dasharray': '2',
-      'fill': FILL_COLOR,
       'stroke-width': '2px',
-      'fill-opacity': '0%',
     },
   },
 
@@ -190,8 +186,7 @@ const defaultConfig: Config = {
 
     attrs: {
       'stroke': STROKE_COLOR,
-      'fill': FILL_COLOR,
-      'fill-opacity': '0%',
+      'fill': 'none',
       'stroke-width': '2px',
     },
   },
@@ -202,8 +197,6 @@ const defaultConfig: Config = {
       'fill': 'none',
       'stroke-linecap': 'square',
       'stroke-width': '2px',
-      'fill-opacity': '0%',
-      'stroke-opacity': OPACITY,
     },
   },
 
@@ -212,7 +205,6 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'stroke-width': '0px',
     },
   },
@@ -221,7 +213,6 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'font-size': '14px',
       'stroke-width': '0',
       /* font-weight': 'lighter', */
@@ -238,88 +229,89 @@ const defaultConfig: Config = {
     attrs: {
       'stroke': STROKE_COLOR,
       'fill': STROKE_COLOR,
-      'fill-opacity': OPACITY,
       'font-size': '10px',
       'font-weight': 'lighter',
     },
   },
 };
 
-const mergeDefaultConfig = (config: any = {}): Config => {
+const mergeConfig = (baseConfig: Config, config: any = {}): Config => {
   return {
     src: {
-      ...defaultConfig.src,
+      ...baseConfig.src,
       ...(config.src || {}),
     },
 
     flowchart: {
-      ...defaultConfig.flowchart,
+      ...baseConfig.flowchart,
       ...(config.flowchart || {}),
     },
 
     rect: {
-      ...defaultConfig.rect,
+      ...baseConfig.rect,
       ...(config.rect || {}),
       attrs: {
-        ...defaultConfig.rect.attrs,
+        ...baseConfig.rect.attrs,
         ...(config.rect && config.rect.attrs || {}),
       }
     },
 
     diamond: {
-      ...defaultConfig.diamond,
+      ...baseConfig.diamond,
       ...(config.diamond || {}),
       attrs: {
-        ...defaultConfig.diamond.attrs,
+        ...baseConfig.diamond.attrs,
         ...(config.diamond && config.diamond.attrs || {}),
       }
     },
 
     path: {
-      ...defaultConfig.path,
+      ...baseConfig.path,
       ...(config.path || {}),
       attrs: {
-        ...defaultConfig.path.attrs,
+        ...baseConfig.path.attrs,
         ...(config.path && config.path.attrs || {}),
       }
     },
 
     arrowHead: {
-      ...defaultConfig.arrowHead,
+      ...baseConfig.arrowHead,
       ...(config.arrowHead || {}),
       attrs: {
-        ...defaultConfig.arrowHead.attrs,
+        ...baseConfig.arrowHead.attrs,
         ...(config.arrowHead && config.arrowHead.attrs || {}),
       }
     },
 
     text: {
-      ...defaultConfig.text,
+      ...baseConfig.text,
       ...(config.text || {}),
       attrs: {
-        ...defaultConfig.text.attrs,
+        ...baseConfig.text.attrs,
         ...(config.text && config.text.attrs || {}),
       }
     },
 
     frame: {
-      ...defaultConfig.frame,
+      ...baseConfig.frame,
       ...(config.frame || {}),
       attrs: {
-        ...defaultConfig.frame.attrs,
+        ...baseConfig.frame.attrs,
         ...(config.frame && config.frame.attrs || {}),
       }
     },
 
     label: {
-      ...defaultConfig.label,
+      ...baseConfig.label,
       ...(config.label || {}),
       attrs: {
-        ...defaultConfig.label.attrs,
+        ...baseConfig.label.attrs,
         ...(config.label && config.label.attrs || {}),
       }
     },
   }
 };
 
-export {Config, defaultConfig, mergeDefaultConfig}
+const mergeDefaultConfig = (config: any = {}): Config => mergeConfig(defaultConfig, config);
+
+export {Config, defaultConfig, mergeConfig, mergeDefaultConfig}
