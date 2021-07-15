@@ -5,31 +5,23 @@ import '@fontsource/roboto';
 import { createStyles, alpha, Theme, makeStyles } from '@material-ui/core/styles';
 
 import clsx from 'clsx';
-import Input from '@material-ui/core/Input';
-import InputAdornment from '@material-ui/core/InputAdornment';
 
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import Slider from '@material-ui/core/Slider';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-
-import MenuIcon from '@material-ui/icons/Menu';
 
 import SplitPane from 'react-split-pane';
 
 import { Editor } from './Editor';
-import { Tefcha } from './Tefcha';
 
 import { ExportMenu } from './ExportMenu';
 import { ThemeMenu } from './ThemeMenu';
 import { ConfigMenu } from './ConfigMenu';
 import { RandomSrcMenu } from './RandomSrcMenu';
+
+import { CustomAppBar } from './CustomAppBar';
+
+import { FlowchartView } from './FlowchartView';
 
 import {
   downloadAsPNGFile,
@@ -43,6 +35,10 @@ import {
 import {
   createRandomSrc,
 } from '../../../../tests/fuzzing/create_random_src';
+
+import {
+  AutoScaleType,
+} from '../types';
 
 
 const createRandomSrcWithComment = (param: any) => {
@@ -69,28 +65,6 @@ const useStyles = makeStyles((theme: Theme) =>
         duration: theme.transitions.duration.leavingScreen,
       }),
     },
-    toolBarRight: {
-      position: 'relative',
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: alpha(theme.palette.common.white, 0.15),
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.common.white, 0.25),
-      },
-      marginLeft: 0,
-      width: '100%',
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing(1),
-        width: 'auto',
-      },
-    },
-    appBarShift: {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: drawerWidth,
-      transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    },
     menuButton: {
       marginRight: theme.spacing(2),
     },
@@ -98,7 +72,6 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'none',
     },
     drawer: {
-      //     marginTop: appBarHeight,
       width: drawerWidth,
       flexShrink: 0,
     },
@@ -107,19 +80,9 @@ const useStyles = makeStyles((theme: Theme) =>
       marginTop: appBarHeight,
       width: drawerWidth,
     },
-    drawerHeader: {
-      // marginTop: appBarHeight,
-      display: 'flex',
-      alignItems: 'center',
-      padding: theme.spacing(0, 1),
-      // necessary for content to be below app bar
-      ...theme.mixins.toolbar,
-      justifyContent: 'flex-end',
-    },
     content: {
       marginTop: appBarHeight,
       flexGrow: 1,
-      // padding: theme.spacing(3),
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
@@ -154,8 +117,6 @@ const useStyles = makeStyles((theme: Theme) =>
       marginLeft: 0,
     },
     scaleInput: {
-      // position: 'relative',
-      // width: 42,
       color: theme.palette.common.white,
       borderRadius: theme.shape.borderRadius,
       backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -192,18 +153,13 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const AUTO_SCALE_TYPE_LIST = ['None', '100%', 'Width', 'Height', 'Auto'] as const;
-type AutoScaleType = (typeof AUTO_SCALE_TYPE_LIST)[number];
-{/* 'None' | '100%' | 'Width' | 'Height' | 'Auto' */}
-
-const isAutoScaleType = (obj: any): obj is AutoScaleType => {
-  return AUTO_SCALE_TYPE_LIST.includes(obj);
-};
 
 const App = () => {
-  const defaultEditorWidth = 300;
+  const defaultEditorWidth = 400;
 
   const classes = useStyles();
+
+  // States
   const [src, setSrc] = React.useState(createRandomSrcWithComment({lineNum: 20}));
   const [errMsg, setErrMsg] = React.useState('');
   const [errLineNo, setErrLineNo] = React.useState(0);
@@ -218,52 +174,10 @@ const App = () => {
   const flowchatViewWidth = screenWidth - editorWidth;
   const flowchatViewHeight = screenHeight - appBarHeight;
 
+  // Refs
   const svgRef = React.useRef(null);
 
-  const applyScale = React.useCallback(() => {
-    console.log('applyScale');
-    if (svgRef.current !== null) {
-    console.log('OK');
-      const originalWidth = Number(svgRef.current.getAttribute('width'));
-      const originalHeight = Number(svgRef.current.getAttribute('height'));
-
-      let scale = flowchatScalePercent / 100;
-      switch (autoScaleType) {
-        case 'None': {
-          // do nothing
-          break;
-        }
-        case '100%': {
-          scale = 1.0;
-          break;
-        }
-        case 'Width': {
-          scale = flowchatViewWidth / originalWidth;
-          break;
-        }
-        case 'Height': {
-          scale = flowchatViewHeight / originalHeight;
-          break;
-        }
-        case 'Auto': {
-          scale = Math.min(
-            flowchatViewWidth / originalWidth,
-            flowchatViewHeight / originalHeight
-          );
-          break;
-        }
-        default: {
-          const _: never = autoScaleType;
-          throw `invalid autoScaleType: ${_}`;
-        }
-      }
-      console.log(autoScaleType);
-      console.log(scale);
-      svgRef.current.style['transform-origin'] = 'top left';
-      svgRef.current.style['transform'] = `scale(${scale})`;
-    }
-  }, [svgRef, autoScaleType, flowchatScalePercent, flowchatViewWidth, flowchatViewHeight]);
-
+  // Effects
   React.useEffect(() => {
     const updateScreenState = () => {
       const width = window.innerWidth;
@@ -277,6 +191,7 @@ const App = () => {
     return () => window.removeEventListener('resize', updateScreenState);
   }, [setScreenWidth, setScreenHeight]);
 
+  // Callbacks
   const toggleIsDrawerOpen = React.useCallback(() => {
     setIsDrawerOpen(!isDrawerOpen);
   }, [isDrawerOpen]);
@@ -297,15 +212,13 @@ const App = () => {
   const onTefchaSuccess = React.useCallback(() => {
     setErrMsg('');
     setErrLineNo(0);
-    applyScale();
   }, [errMsg, errLineNo, flowchatScalePercent,
 svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
   ]);
 
-
-  React.useEffect(() => {
-    applyScale();
-  }, [svgRef, flowchatScalePercent, autoScaleType, flowchatViewWidth, flowchatViewHeight])
+  const onRandomSrc = React.useCallback((param: any) => {
+    setSrc(createRandomSrcWithComment(param));
+  }, [src, setSrc]);
 
   const exportAsPNGFile = () => {
     if (svgRef.current !== null) {
@@ -319,96 +232,17 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
     }
   };
 
-  const onRandomSrc = React.useCallback((param: any) => {
-    setSrc(createRandomSrcWithComment(param));
-  }, [src, setSrc]);
-
   return (
     <div className={classes.root}>
       <CssBaseline />
-          {/* [classes.appBarShift]: isDrawerOpen, */}
-      <AppBar
-        position="fixed"
-        className={clsx(classes.appBar, {
-        })}
-      >
-        <Toolbar>
-            <IconButton
-              color="inherit"
-              onClick={toggleIsDrawerOpen}
-              edge="start"
-              className={clsx(classes.menuButton)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap>
-              Tefcha
-            </Typography>
-            {/* put components at rightside by 'flexGrow: 1' */}
-            <div style={{ flexGrow: 1 }}></div>
-            <Slider
-              value={typeof flowchatScalePercent === 'number' ? flowchatScalePercent : 0}
-              onChange={(_e: any, v: any) => {
-                setFlowchatScalePercent(v);
-              }}
-              defaultValue={100}
-              step={1}
-              min={1}
-              max={400}
-              disabled={autoScaleType !== 'None'}
-              className={classes.scaleSlider}
-            />
-            <Input
-              className={classes.scaleInput}
-              value={flowchatScalePercent}
-              margin="dense"
-              endAdornment={<InputAdornment position="end">%</InputAdornment>}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                try {
-                  const value = Number(event.target.value)
-                  setFlowchatScalePercent(value);
-                } catch(e) {
-                  console.error(e);
-                }
-              }}
-              onBlur={() => {
-                if (flowchatScalePercent < 1) {
-                  setFlowchatScalePercent(1);
-                } else if (flowchatScalePercent > 400) {
-                  setFlowchatScalePercent(400);
-                }
-              }}
-              inputProps={{
-                step: 1,
-                min: 1,
-                max: 400,
-                type: 'number',
-                'aria-labelledby': 'input-slider',
-              }}
-              disabled={autoScaleType !== 'None'}
-            />
-            <Select
-              className={classes.scaleSelect}
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={autoScaleType}
-              onChange={(event: React.ChangeEvent<{value: unknown}>) => {
-                const value = event.target.value;
-                if (isAutoScaleType(value)) {
-                  setAutoScaleType(value);
-                } else {
-                  throw `value is invalid: ${value}`;
-                }
-              }}
-            >
-              <MenuItem value='None'>Scale-None</MenuItem>
-              <MenuItem value='100%'>Scale-100%</MenuItem>
-              <MenuItem value='Width'>Scale-Width</MenuItem>
-              <MenuItem value='Height'>Scale-Height</MenuItem>
-              <MenuItem value='Auto'>Scale-Auto</MenuItem>
-            </Select>
-        </Toolbar>
-      </AppBar>
+      <CustomAppBar
+        classes={classes}
+        flowchatScalePercent={flowchatScalePercent}
+        autoScaleType={autoScaleType}
+        onClickDrawerButton={toggleIsDrawerOpen}
+        onFlowcharScalePercentChange={setFlowchatScalePercent}
+        onAutoScaleTypeChange={setAutoScaleType}
+      />
       <Drawer
         className={classes.drawer}
         variant="persistent"
@@ -444,7 +278,6 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
           />
         </List>
       </Drawer>
-          {/* [classes.contentShift]: isDrawerOpen, */}
       <main
         className={clsx(classes.content, {
         })}
@@ -453,13 +286,8 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
           split="vertical"
           minSize={100}
           defaultSize={defaultEditorWidth}
-          style={
-            { height: `calc(100% - ${appBarHeight}px)`}
-          }
-          onChange={(newSize: number) => {
-            setEditorWidth(newSize);
-            }
-          }
+          style={{ height: flowchatViewHeight}}
+          onChange={setEditorWidth}
         >
           <Editor
             value={src}
@@ -480,12 +308,16 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
               }}
             >
       
-              <Tefcha
+              <FlowchartView
                 src={src}
                 svgRef={svgRef}
-                onError={onTefchaError}
-                onSuccess={onTefchaSuccess}
-                config={tefchaConfig}
+                scalePercent={flowchatScalePercent}
+                autoScaleType={autoScaleType}
+                width={flowchatViewWidth}
+                height={flowchatViewHeight}
+                onTefchaError={onTefchaError}
+                onTefchaSuccess={onTefchaSuccess}
+                tefchaConfig={tefchaConfig}
               />
             </div>
           </SplitPane>
