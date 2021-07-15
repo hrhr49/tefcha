@@ -4,6 +4,7 @@ import '@fontsource/roboto';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import Input from '@material-ui/core/Input';
 import SettingsIcon from '@material-ui/icons/Settings';
 
 import {
@@ -17,6 +18,8 @@ import Form from '@rjsf/material-ui';
 import {
   CollapseListItem,
 } from './CollapseListItem';
+
+import { Validator } from 'jsonschema';
 
 interface IConfigMenuProps {
   onChange?: (e: IChangeEvent<any>, es?: ErrorSchema) => any;
@@ -229,6 +232,9 @@ const configSchema = {
   ]
 };
 
+const validator = new Validator();
+validator.addSchema(configSchema);
+
 const configUiSchema = {
   "flowchart": {
     "marginX": {
@@ -314,7 +320,10 @@ const ConfigMenu = ({
             onSubmit={onSubmit}
             onError={onError}
             liveValidate={true}
-          />
+          >
+            {/* since 'submit' button is not needed, we put dummy fragment */}
+            <React.Fragment />
+          </Form>
         </ListItem>
       </List>
     </CollapseListItem>

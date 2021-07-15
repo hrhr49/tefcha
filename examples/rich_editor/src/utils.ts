@@ -1,5 +1,8 @@
 const downloadAsPNGFile = (svgEl: SVGElement) => {
-  // console.log('Download PNG');
+  const backupStyle = svgEl.getAttribute('style');
+  // remove style befor saving image
+  svgEl.setAttribute('style', '');
+
   const svgData = new XMLSerializer().serializeToString(svgEl);
   const canvas = document.createElement("canvas");
   canvas.width = (svgEl as any).width.baseVal.value;
@@ -8,18 +11,23 @@ const downloadAsPNGFile = (svgEl: SVGElement) => {
   const ctx = canvas.getContext("2d");
   const image = new Image;
   image.onload = function(){
-      ctx.drawImage( image, 0, 0 );
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.setAttribute("download", "image.png");
-      a.dispatchEvent(new MouseEvent("click"));
+    ctx.drawImage( image, 0, 0 );
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.setAttribute("download", "image.png");
+    a.dispatchEvent(new MouseEvent("click"));
+
+    svgEl.setAttribute('style', backupStyle);
   }
   image.src = "data:image/svg+xml;charset=utf-8;base64," 
     + btoa(unescape(encodeURIComponent(svgData))); 
 };
 
 const downloadAsSVGFile = (svgEl: SVGElement) => {
-  // console.log('Download SVG');
+  const backupStyle = svgEl.getAttribute('style');
+  // remove style befor saving image
+  svgEl.setAttribute('style', '');
+
   const svgData = new XMLSerializer().serializeToString(svgEl);
   let blob = new Blob([svgData], {type: "image/svg"});
   let a = document.createElement("a");
@@ -29,6 +37,8 @@ const downloadAsSVGFile = (svgEl: SVGElement) => {
   a.click();
   document.body.removeChild(a); // for Firefox
   URL.revokeObjectURL(a.href);
+
+  svgEl.setAttribute('style', backupStyle);
 };
 
 export {

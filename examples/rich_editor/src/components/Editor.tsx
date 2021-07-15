@@ -41,6 +41,7 @@ const Editor = ({
       name='UNIQUE_ID_OF_DIV'
       tabSize={2}
       width={null}
+      height='100%'
       focus={true}
       debounceChangePeriod={100}
       editorProps={{
