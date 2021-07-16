@@ -1,1 +1,0 @@
-{"version":3,"sources":["sw.js"],"names":["self","addEventListener","e","console","log","request","url"],"mappings":";AAAAA,KAAKC,iBAAiB,QAAS,SAACC,GAC9BC,QAAQC,IAA6CF,yCAAAA,OAAAA,EAAEG,QAAQC","file":"sw.js","sourceRoot":"..","sourcesContent":["self.addEventListener('fetch', (e) => {\n  console.log(`[Serive Worker] Fetch event resource: ${e.request.url}`);\n});\n"]}

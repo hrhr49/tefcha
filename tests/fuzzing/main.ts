@@ -6,7 +6,7 @@ import * as rimraf from 'rimraf'
 
 import {
   createRandomSrc,
-} from './create_random_src';
+} from './create-random-src';
 
 import {
   parse,
@@ -16,10 +16,10 @@ import {
 } from '../../src/config';
 // import {
 //   checkSVGFile,
-// } from './svg_extractor';
+// } from './svg-extractor';
 import {
   checkJSONObj,
-} from './json_checker';
+} from './json-checker';
 
 declare global {
   interface Window {
