@@ -34,7 +34,7 @@ import {
 
 import {
   createRandomSrc,
-} from '../../../../tests/fuzzing/create_random_src';
+} from '../../../../tests/fuzzing/create-random-src';
 
 import {
   AutoScaleType,

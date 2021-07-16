@@ -69,8 +69,6 @@ const FlowchartView = ({
           throw `invalid autoScaleType: ${_}`;
         }
       }
-      console.log(autoScaleType);
-      console.log(scale);
       svgRef.current.style['transform-origin'] = 'top left';
       svgRef.current.style['transform'] = `scale(${scale})`;
     }

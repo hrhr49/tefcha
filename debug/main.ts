@@ -3,7 +3,7 @@ import {simpleProgs} from './simple'
 import {ifProgs} from './if'
 import {loopProgs} from './loop'
 import {jumpProgs} from './jump'
-import {tryExceptProgs} from './try_except'
+import {tryExceptProgs} from './try-except'
 
 const progs = [
   ...simpleProgs,

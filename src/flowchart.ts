@@ -11,7 +11,7 @@ import {
   Diamond,
 } from './shape'
 import {Config} from './config'
-import {RangeAllocator, createRangeList} from './range_allocator'
+import {RangeAllocator, createRangeList} from './range-allocator'
 
 
 const DEBUG = false;
