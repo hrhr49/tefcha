@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "parcel ./index.html --open",
     "clean": "rimraf dist",
-    "build": "yarn clean && parcel build --target browser index.html --out-dir dist --out-file index.html",
+    "build": "yarn clean && parcel build --target browser index.html --public-url \".\" --out-dir dist --out-file index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "cache": {
