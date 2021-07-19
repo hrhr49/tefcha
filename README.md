@@ -28,7 +28,7 @@ Text to Flowchart.
 
 ### npm
 
-```
+```sh
 npm install tefcha
 ```
 
@@ -37,7 +37,7 @@ npm install tefcha
 You can use command line interface also.
 https://github.com/hrhr49/tefcha-cli
 
-```
+```sh
 npm install tefcha-cli
 ```
 
@@ -123,7 +123,7 @@ See
 
 ### Configuration Example
 
-```
+```html
 <!DOCTYPE html>
 <html>
 
