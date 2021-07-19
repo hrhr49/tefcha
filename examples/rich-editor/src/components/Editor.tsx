@@ -1,22 +1,43 @@
 import * as React from 'react';
 import AceEditor from 'react-ace';
 
-{/* import 'ace-builds/src-noconflict/mode-text; */}
+import 'ace-builds/src-noconflict/mode-text';
 import 'ace-builds/src-noconflict/theme-monokai';
+import 'brace/mode/java';
 
-// TODO: Syntax Highlight.
-class CustomHighlightRules extends (window as any).ace.acequire("ace/mode/text_highlight_rules").TextHighlightRules {
+
+declare global {
+  interface Window {
+    ace: any;
+  }
+}
+
+window.ace.config.set('basePath', '.');
+
+// https://github.com/securingsincity/react-ace/issues/126
+class CustomHighlightRules extends window.ace.acequire("ace/mode/text_highlight_rules").TextHighlightRules {
   constructor() {
     super();
     this.$rules = {
       start: [
         {
           token: "keyword",
-          regex: "if"
+          regex: "^\\s*(if|elif|else|while|do|for|continue|break|switch|case|pass|try|except)"
+        },
+        {
+          token: "comment",
+          regex: "^\\s*#.*$"
         }
       ]
     };
   }
+}
+
+class CustomTextMode extends window.ace.acequire('ace/mode/java').Mode {
+	constructor() {
+		super();
+		this.HighlightRules = CustomHighlightRules;
+	}
 }
 
 interface IEditorProps {
@@ -32,6 +53,13 @@ const Editor = ({
 }: IEditorProps) => {
   const aceRef = React.useRef(null);
 
+  React.useEffect(() => {
+    if (aceRef.current) {
+      aceRef.current.editor.getSession().setMode(new CustomTextMode());
+    } else {
+      throw `aceEditor ref is invalid: ${aceRef}`;
+    }
+  });
   return (
     <AceEditor
       ref={aceRef}
@@ -52,7 +80,6 @@ const Editor = ({
   );
 }
 
-      // debounceChangePeriod={300}
 export {
   Editor,
 }
