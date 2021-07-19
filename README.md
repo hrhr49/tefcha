@@ -8,7 +8,12 @@ Text to Flowchart.
 
 ## Demo
 
-[https://hrhr49.github.io/tefcha/demo](https://hrhr49.github.io/tefcha/demo)
+### Rich Editor
+* [https://hrhr49.github.io/tefcha/examples/rich-editor/dist](https://hrhr49.github.io/tefcha/examples/rich-editor/dist)
+
+### Simple Editor
+* [https://hrhr49.github.io/tefcha/demo](https://hrhr49.github.io/tefcha/demo)
+
 
 ## Feature
 * Convert pseudo code to flowchart image.
@@ -23,7 +28,7 @@ Text to Flowchart.
 
 ### npm
 
-```
+```sh
 npm install tefcha
 ```
 
@@ -32,7 +37,7 @@ npm install tefcha
 You can use command line interface also.
 https://github.com/hrhr49/tefcha-cli
 
-```
+```sh
 npm install tefcha-cli
 ```
 
@@ -103,6 +108,10 @@ End
 </html>
 ```
 
+### Simple Example Result
+
+![simple-example](img/simple-example.png)
+
 ## Configuration
 
 You can pass a custom configuration to `tefcha.initialize()`.
@@ -111,6 +120,103 @@ See
 
 * [./src/config.ts](src/config.ts)
 * [./demo/index.html](./demo/index.html)
+
+### Configuration Example
+
+```html
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+  <div class="tefcha">
+# This is a example.
+# NOTE:
+#   The line starts with "#" is comment.
+#   "\n" is newline.
+#   All indent must be "  " (2 white spaces).
+
+Start\nFizzBuzz!
+i = 1
+
+while i <= 100
+  if i % 15 == 0
+    print("FizzBuzz")
+  elif i % 3 == 0
+    print("Fizz")
+  elif i % 5 == 0
+    print("Buzz")
+  else
+    print(i)
+  i = i + 1
+End
+  </div>
+  <script src="https://unpkg.com/tefcha/umd/tefcha.js"></script>
+  <script>
+    var blueConfig = {
+      text: {
+        attrs: {
+          'font-size': '14px',
+          'stroke': 'white',
+          'fill': 'white',
+          'fill-opacity': '100%',
+          'stroke-width': '0px',
+        },
+      },
+      label: {
+        attrs: {
+          'font-size': '10px',
+          'stroke': 'royalblue',
+          'fill': 'royalblue',
+          'fill-opacity': '100%',
+        },
+      },
+      path: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill-opacity': '0%',
+        },
+      },
+      rect: {
+        attrs: {
+          'stroke': 'steelblue',
+          'stroke-width': '2px',
+          'fill': 'steelblue',
+          'fill-opacity': '100%',
+          'rx': '3px',
+          'ry': '3px',
+        },
+      },
+      diamond: {
+        attrs: {
+          'stroke': 'royalblue',
+          'stroke-width': '2px',
+          'fill': 'royalblue',
+          'fill-opacity': '100%',
+        },
+      },
+      arrowHead: {
+        attrs: {
+          'stroke': 'dimgray',
+          'stroke-width': '2px',
+          'fill': 'dimgray',
+          'fill-opacity': '100%',
+        },
+      },
+    };
+    tefcha.initialize(blueConfig);
+  </script>
+</body>
+
+</html>
+```
+
+### Configuration Example Result
+![blue-theme.png](img/blue-theme.png)
 
 ## Syntax
 

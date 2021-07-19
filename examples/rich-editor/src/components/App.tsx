@@ -155,7 +155,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 
 const App = () => {
-  const defaultEditorWidth = 400;
+  const defaultEditorWidth = 440;
 
   const classes = useStyles();
 
