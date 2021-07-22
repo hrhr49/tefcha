@@ -26,12 +26,16 @@ interface RenderParam {
     document: Document;
 }
 
+const DEBUG = false;
+
 class Renderer {
-  dummySVG: SVGElement;
-  svg: SVGElement;
-  _document: Document;
-  src: string;
-  config: Config;
+  readonly dummySVG: SVGElement;
+  readonly svg: SVGElement;
+  readonly _document: Document;
+  readonly src: string;
+  readonly config: Config;
+  readonly labelHeight: number;
+  readonly textHeight: number;
 
   constructor({
     src,
@@ -47,6 +51,9 @@ class Renderer {
       version: '1.1',
       xmlns: 'http://www.w3.org/2000/svg',
     });
+
+    this.labelHeight = this.measureText('A', config.label.attrs).h;
+    this.textHeight = this.measureText('A', config.text.attrs).h;
   }
 
   el = (
@@ -87,13 +94,11 @@ class Renderer {
   renderShape = ({
     layers,
     shape,
-    config,
     offsetX = 0,
     offsetY = 0,
   }: {
     layers: Layers;
     shape: Shape;
-    config: Config;
     offsetX?: number;
     offsetY?: number;
   }): void => {
@@ -102,22 +107,22 @@ class Renderer {
 
     switch (shape.type) {
       case 'group':
-        shape.children.forEach(child => this.renderShape({layers, config, shape: child, offsetX: x, offsetY: y}));
+        shape.children.forEach(child => this.renderShape({layers, shape: child, offsetX: x, offsetY: y}));
         break;
       case 'text':
-        layers.textLayer.append(this.renderText({x, y, shape, config}));
+        layers.textLayer.append(this.renderText({x, y, shape}));
         break;
       case 'path':
-        layers.pathLayer.append(this.renderPath({x, y, shape, config}));
+        layers.pathLayer.append(this.renderPath({x, y, shape}));
         break;
       case 'rect':
-        layers.nodeLayer.append(this.renderRect({x, y, shape, config}));
+        layers.nodeLayer.append(this.renderRect({x, y, shape}));
         break;
       case 'frame':
-        layers.frameLayer.append(this.renderFrame({x, y, shape, config}));
+        layers.frameLayer.append(this.renderFrame({x, y, shape}));
         break;
       case 'diamond':
-        layers.nodeLayer.append(this.renderDiamond({x, y, shape, config}));
+        layers.nodeLayer.append(this.renderDiamond({x, y, shape}));
         break;
       case 'point':
         break;
@@ -131,18 +136,17 @@ class Renderer {
     x,
     y,
     shape,
-    config
   }: {
     x: number,
     y: number,
     shape: Text,
-    config: Config
   }): SVGElement => {
+    const {config} = this;
     return this.createTextSVGElement(
       shape.content,
       {
         x,
-        y: y + this.measureText('A', shape.isLabel ? config.label.attrs : config.text.attrs).h / 2,
+        y: y + (shape.isLabel ? this.labelHeight : this.textHeight) / 2,
         'dominant-baseline': 'central',
         ...(shape.isLabel ? config.label.attrs : config.text.attrs),
       })
@@ -152,13 +156,12 @@ class Renderer {
     x,
     y,
     shape,
-    config,
   }: {
     x: number,
     y: number,
     shape: Rect,
-    config: Config,
   }): SVGElement => {
+    const {config} = this;
     const {w, h} = shape;
     return this.el('rect', {x, y, width: w, height: h, ...config.rect.attrs})
   }
@@ -167,13 +170,12 @@ class Renderer {
     x,
     y,
     shape,
-    config,
   }: {
     x: number,
     y: number,
     shape: Frame,
-    config: Config,
   }): SVGElement => {
+    const {config} = this;
     const {w, h} = shape;
     return this.el('rect', {x, y, width: w, height: h, ...config.frame.attrs})
   }
@@ -182,13 +184,12 @@ class Renderer {
     x,
     y,
     shape,
-    config,
   }: {
     x: number,
     y: number,
     shape: Diamond,
-    config: Config,
   }): SVGElement => {
+    const {config} = this;
     const {w, h} = shape;
     return this.el('polygon', {
       points: `${x + w / 2},${y}, ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`,
@@ -200,13 +201,12 @@ class Renderer {
     x,
     y,
     shape,
-    config,
   }: {
     x: number,
     y: number,
     shape: Path,
-    config: Config,
   }): SVGElement => {
+    const {config} = this;
     const m = `M ${x} ${y}`;
     const l = shape.cmds.map(cmd => cmd.join(' ')).join(' ');
     //     arrow = 'marker-end="url(#arrow-head)"' if self.is_arrow else ''
@@ -263,7 +263,6 @@ class Renderer {
         textLayer,
       },
       shape: flowchart.shapes,
-      config,
     });
 
     svg.append(backgroundLayer);
@@ -294,7 +293,15 @@ class Renderer {
 
 
 const render = (param: RenderParam) => {
-  return new Renderer(param).render();
+  if (DEBUG) {
+    const s = performance.now();
+    const ret = new Renderer(param).render();
+    const e = performance.now();
+    console.log(`rendering: ${e - s} ms`);
+    return ret;
+  } else {
+    return new Renderer(param).render();
+  }
 }
 
 export {

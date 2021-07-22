@@ -6,6 +6,7 @@ import {
   Point,
   Path,
   Text,
+  TextSize,
   Rect,
   Frame,
   Diamond,
@@ -125,6 +126,11 @@ class Flowchart {
   readonly dy: number;
   readonly hlineMargin: number;
 
+  // cache of the size of the label of "yes" or "no" in condition node
+  // this is used since measureText function is heavy.
+  readonly yesTextSize: TextSize;
+  readonly noTextSize: TextSize;
+
   // NOTE:
   // * "y" is the y-coordinate of end point.
   // TODO: rename variable name to understand easliy.
@@ -141,6 +147,8 @@ class Flowchart {
     AllocE,
     x,
     y,
+    yesTextSize,
+    noTextSize,
   }:
   {
     config: Config;
@@ -151,6 +159,8 @@ class Flowchart {
     shapes: Group;
     x: number;
     y: number;
+    yesTextSize: TextSize;
+    noTextSize: TextSize;
   }) {
     this.type = 'flowchart';
     this.shapes = shapes;
@@ -166,6 +176,10 @@ class Flowchart {
     this.hlineMargin = config.flowchart.hlineMargin;
     this.x = x;
     this.y = y;
+
+    this.yesTextSize = yesTextSize;
+    this.noTextSize = noTextSize;
+
   }
 
   shiftX = (x: number): void => {
@@ -224,12 +238,45 @@ class Flowchart {
     {cls, text, x, y, w, h, tw, th}: 
     {cls: any, text: string, x: number, y: number, w: number, h: number, tw: number, th: number}
   ): Group => {
-    const textShape = this.text({text, x: - tw / 2, y: h / 2 - th / 2, isLabel: false}); 
+    const textShape = this.text({text, x: - tw / 2, y: h / 2 - th / 2, w: tw, h: th, isLabel: false}); 
     const wrapShape = new cls({x: - w / 2, w, h});
     return new Group({x, y, children: [textShape, wrapShape]});
   }
 
-  public text = ({x, y, text, isLabel}: {x: number, y: number, text: string, isLabel: boolean}): Text => {
+  private text = ({
+    x,
+    y,
+    w,
+    h,
+    text,
+    isLabel
+  }: {
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    text: string,
+    isLabel: boolean
+  }): Text => {
+    return new Text({
+      content: text,
+      x, y,
+      w, h,
+      isLabel,
+    });
+  }
+
+  public textWithAutoSize = ({
+    x,
+    y,
+    text,
+    isLabel
+  }: {
+    x: number,
+    y: number,
+    text: string,
+    isLabel: boolean
+  }): Text => {
     return Text.byMeas({x, y, text, attrs: this.config.text.attrs, meas: this.measureText, isLabel});
   }
 
@@ -273,6 +320,8 @@ class Flowchart {
       shapes, diamond, text,
       stepAbs, move,
       hlineMargin,
+      yesTextSize,
+      noTextSize,
     } = this;
     const {yesText, noText} = this.config.label;
     const {marginX: labelMarginX, marginY: labelMarginY} = this.config.label;
@@ -314,7 +363,6 @@ class Flowchart {
       S : {x: 0, y: cond.y + cond.h},
     };
 
-    const yesTextSize = this.measureText(yesText, this.config.label.attrs);
     const yesTextX = yesDir !== 'W' 
       ? condPos[yesDir].x + labelMarginX
       : condPos[yesDir].x - labelMarginX - yesTextSize.w;
@@ -322,16 +370,19 @@ class Flowchart {
     shapes.add(text({
       x: yesTextX,
       y: condPos[yesDir].y + labelMarginY,
+      w: yesTextSize.w,
+      h: yesTextSize.h,
       text: yesText, isLabel: true,
     }));
 
-    const noTextSize = this.measureText(noText, this.config.label.attrs);
     const noTextX = noDir !== 'W' 
       ? condPos[noDir].x + labelMarginX
       : condPos[noDir].x - labelMarginX - noTextSize.w;
     shapes.add(text({
       x: noTextX,
       y: condPos[noDir].y + labelMarginY,
+      w: noTextSize.w,
+      h: noTextSize.h,
       text: noText, isLabel: true,
     }));
 
@@ -364,6 +415,8 @@ class Flowchart {
       AllocW: this.AllocW.clone(),
       AllocE: this.AllocE.clone(),
       x: this.x, y: this.y,
+      yesTextSize: this.yesTextSize,
+      noTextSize: this.noTextSize,
     });
   }
 
@@ -462,6 +515,8 @@ const createFlowchart = ({
     AllocW: new RangeAllocator(createRangeList()),
     AllocE: new RangeAllocator(createRangeList()),
     x: 0, y: config.flowchart.marginY,
+    yesTextSize: measureText(config.label.yesText, config.label.attrs),
+    noTextSize: measureText(config.label.noText, config.label.attrs),
   });
   createFlowchartSub(node, flowchart);
   flowchart.shiftX(-flowchart.shapes.minX + config.flowchart.marginX);
@@ -1134,7 +1189,7 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
 
     exceptFlowchart.shiftX(exceptFlowchartX);
 
-    exceptFlowchart.shapes.add(exceptFlowchart.text({
+    exceptFlowchart.shapes.add(exceptFlowchart.textWithAutoSize({
       x: exceptFlowchart.config.label.marginX,
       y: startY + exceptFlowchart.config.label.marginY,
       text: exceptNode.content, isLabel: true,
@@ -1275,7 +1330,7 @@ const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], fl
 
     caseFlowchart.shiftX(caseFlowchartX);
 
-    caseFlowchart.shapes.add(caseFlowchart.text({
+    caseFlowchart.shapes.add(caseFlowchart.textWithAutoSize({
       x: caseFlowchart.config.label.marginX,
       y: startY + caseFlowchart.config.label.marginY,
       text: caseNode.content, isLabel: true,
