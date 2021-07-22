@@ -22,7 +22,7 @@ class CustomHighlightRules extends window.ace.acequire("ace/mode/text_highlight_
       start: [
         {
           token: "keyword",
-          regex: "^\\s*(if|elif|else|while|do|for|continue|break|switch|case|pass|try|except)"
+          regex: "^\\s*(if|elif|else|while|do|for|continue|break|switch|case|pass|try|except)\\b"
         },
         {
           token: "comment",
