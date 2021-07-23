@@ -51,7 +51,7 @@ const createRandomSrcWithComment = (param: any) => {
 };
 
 
-const drawerWidth = 440;
+const drawerWidth = Math.max(Math.floor(window.innerWidth * 0.4), 10);
 const appBarHeight = 64;
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -110,20 +110,35 @@ const useStyles = makeStyles((theme: Theme) =>
       height: `calc(100% - ${appBarHeight}px - ${theme.spacing(3)}px)`,
     },
     scaleSlider: {
-      color: theme.palette.common.white,
+      [theme.breakpoints.up('xs')]: {
+        color: theme.palette.common.white,
+        marginLeft: 0,
+      },
+      [theme.breakpoints.down('xs')]: {
+        color: theme.palette.primary.main,
+      },
       margin: theme.spacing(1),
-      minWidth: 120,
+      minWidth: 100,
       maxWidth: 300,
-      marginLeft: 0,
     },
     scaleInput: {
-      color: theme.palette.common.white,
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: alpha(theme.palette.common.white, 0.15),
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.common.white, 0.25),
+      [theme.breakpoints.up('xs')]: {
+        color: theme.palette.common.white,
+        backgroundColor: alpha(theme.palette.common.white, 0.15),
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.common.white, 0.25),
+        },
+        marginLeft: 0,
       },
-      marginLeft: 0,
+      [theme.breakpoints.down('xs')]: {
+        color: theme.palette.primary.main,
+        backgroundColor: alpha(theme.palette.common.white, 0.9),
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.common.white, 1.0),
+        },
+      },
+      borderRadius: theme.shape.borderRadius,
+      margin: theme.spacing(1),
       width: '100%',
       [theme.breakpoints.up('sm')]: {
         marginLeft: theme.spacing(1),
@@ -134,28 +149,37 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'inline',
       color: theme.palette.common.white,
       margin: theme.spacing(1),
-      minWidth: 120,
+      minWidth: 100,
     },
     scaleSelect: {
-      color: theme.palette.common.white,
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: alpha(theme.palette.common.white, 0.15),
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.common.white, 0.25),
+      [theme.breakpoints.up('xs')]: {
+        color: theme.palette.common.white,
+        backgroundColor: alpha(theme.palette.common.white, 0.15),
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.common.white, 0.25),
+        },
+        marginLeft: 0,
+      },
+      [theme.breakpoints.down('xs')]: {
+        color: theme.palette.primary.main,
+        backgroundColor: alpha(theme.palette.common.white, 0.9),
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.common.white, 1.0),
+        },
       },
       margin: theme.spacing(1),
-      minWidth: 120,
+      minWidth: 100,
     },
     formControl: {
       margin: theme.spacing(1),
-      minWidth: 120,
+      minWidth: 100,
     },
   }),
 );
 
 
 const App = () => {
-  const defaultEditorWidth = 440;
+  const defaultEditorWidth = drawerWidth;
 
   const classes = useStyles();
 
@@ -284,7 +308,7 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
       >
         <SplitPane
           split="vertical"
-          minSize={100}
+          minSize={10}
           defaultSize={defaultEditorWidth}
           style={{ height: flowchatViewHeight}}
           onChange={setEditorWidth}
