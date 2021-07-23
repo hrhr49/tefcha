@@ -1,8 +1,6 @@
 # Tefcha
 
-**NOTE:** **THIS IS UNDER DEVELOPMENT. ANYTHING CAN BE CHANGED.**
-
-Text to Flowchart.
+**T**ext to **F**low**ch**art.
 
 ![./img/sample.gif](./img/sample.gif)
 
@@ -373,3 +371,8 @@ hiro49410@gmail.com
 
 ## License
 MIT
+
+## Links
+
+* GitHub Page: https://github.com/hrhr49/tefcha
+* NPM Page: https://www.npmjs.com/package/tefcha

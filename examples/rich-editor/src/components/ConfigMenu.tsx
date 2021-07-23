@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import '@fontsource/roboto';
 
+import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -20,8 +21,11 @@ import {
 
 import { Validator } from 'jsonschema';
 
+import { downloadAsJSONFile } from '../utils';
+
 interface IConfigMenuProps {
   onChange?: (e: IChangeEvent<any>, es?: ErrorSchema) => any;
+  onImport?: (data: any) => any;
   onError?: (e: any) => any;
   onSubmit?: (e: ISubmitEvent<any>, nativeEvent: React.FormEvent<HTMLFormElement>) => any;
   formData?: any;
@@ -297,17 +301,50 @@ const configUiSchema = {
 
 const ConfigMenu = ({
   onChange,
+  onImport,
   onSubmit,
   onError,
   formData,
   classes,
 }: IConfigMenuProps) => {
+  const downloadConfig = React.useCallback(() => {
+    downloadAsJSONFile(formData);
+  }, [formData]);
+  const loadConfig = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const target = event.target;
+    const files = target.files;
+    const reader = new FileReader();
+    reader.readAsText(files[0]);
+
+    reader.onload = () => {
+      try {
+        const jsonData = JSON.parse(reader.result.toString());
+        onImport(jsonData);
+      } catch (e) {
+        alert(`JSON parsing is failed: ${e}`);
+      }
+    };
+    reader.onerror = (e: any) => {
+      alert(`Reading file is failed: ${e}`);
+    };
+  }, [onChange]);
   return (
     <CollapseListItem
       title="Config"
       icon={<SettingsIcon />}
     >
       <List component="div" disablePadding>
+        <ListItem
+          className={classes.nested}
+        >
+          <Button variant='outlined' component='label'>
+            Import
+            <input onChange={loadConfig} type='file' accept='application/json' hidden />
+          </Button>
+          <Button onClick={downloadConfig} variant='outlined'>
+            Export
+          </Button>
+        </ListItem>
         <ListItem
           className={classes.nested}
         >
