@@ -294,6 +294,9 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
                 setTefchaConfig(formData);
               }
             }}
+            onImport={(data: any) => {
+              setTefchaConfig(data);
+            }}
             formData={tefchaConfig}
           />
           <RandomSrcMenu

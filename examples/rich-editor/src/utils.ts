@@ -1,4 +1,4 @@
-const downloadAsPNGFile = (svgEl: SVGElement) => {
+const downloadAsPNGFile = (svgEl: SVGElement, fileName: string = 'image.png') => {
   const backupStyle = svgEl.getAttribute('style');
   // remove style befor saving image
   svgEl.setAttribute('style', '');
@@ -14,7 +14,7 @@ const downloadAsPNGFile = (svgEl: SVGElement) => {
     ctx.drawImage( image, 0, 0 );
     const a = document.createElement("a");
     a.href = canvas.toDataURL("image/png");
-    a.setAttribute("download", "image.png");
+    a.setAttribute("download", fileName);
     a.dispatchEvent(new MouseEvent("click"));
 
     svgEl.setAttribute('style', backupStyle);
@@ -23,7 +23,7 @@ const downloadAsPNGFile = (svgEl: SVGElement) => {
     + btoa(unescape(encodeURIComponent(svgData))); 
 };
 
-const downloadAsSVGFile = (svgEl: SVGElement) => {
+const downloadAsSVGFile = (svgEl: SVGElement, fileName: string = 'image.svg') => {
   const backupStyle = svgEl.getAttribute('style');
   // remove style befor saving image
   svgEl.setAttribute('style', '');
@@ -33,7 +33,7 @@ const downloadAsSVGFile = (svgEl: SVGElement) => {
   let a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   document.body.appendChild(a); // for Firefox
-  a.download = "image.svg";
+  a.download = fileName;
   a.click();
   document.body.removeChild(a); // for Firefox
   URL.revokeObjectURL(a.href);
@@ -41,7 +41,19 @@ const downloadAsSVGFile = (svgEl: SVGElement) => {
   svgEl.setAttribute('style', backupStyle);
 };
 
+const downloadAsJSONFile = (jsonData: any, fileName: string = 'data.json') => {
+  let blob = new Blob([JSON.stringify(jsonData, null, '  ')], {type: "application/json"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  document.body.appendChild(a); // for Firefox
+  a.download = fileName;
+  a.click();
+  document.body.removeChild(a); // for Firefox
+  URL.revokeObjectURL(a.href);
+};
+
 export {
   downloadAsPNGFile,
   downloadAsSVGFile,
+  downloadAsJSONFile,
 }
