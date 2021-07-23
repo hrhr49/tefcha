@@ -337,6 +337,17 @@ const ConfigMenu = ({
         <ListItem
           className={classes.nested}
         >
+          <Button variant='outlined' component='label'>
+            Import
+            <input onChange={loadConfig} type='file' accept='application/json' hidden />
+          </Button>
+          <Button onClick={downloadConfig} variant='outlined'>
+            Export
+          </Button>
+        </ListItem>
+        <ListItem
+          className={classes.nested}
+        >
           <Form
             schema={configSchema as any}
             uiSchema={configUiSchema}
@@ -349,17 +360,6 @@ const ConfigMenu = ({
             {/* since 'submit' button is not needed, we put dummy fragment */}
             <React.Fragment />
           </Form>
-        </ListItem>
-        <ListItem
-          className={classes.nested}
-        >
-          <Button onClick={downloadConfig} variant='outlined'>
-            Export
-          </Button>
-          <Button variant='outlined' component='label'>
-            Import
-            <input onChange={loadConfig} type='file' accept='application/json' hidden />
-          </Button>
         </ListItem>
       </List>
     </CollapseListItem>
