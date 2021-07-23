@@ -51,7 +51,7 @@ const createRandomSrcWithComment = (param: any) => {
 };
 
 
-const drawerWidth = Math.max(Math.floor(window.innerWidth * 0.4), 280);
+const drawerWidth = Math.max(Math.floor(window.innerWidth * 0.3), 280);
 const appBarHeight = 64;
 
 const useStyles = makeStyles((theme: Theme) =>
