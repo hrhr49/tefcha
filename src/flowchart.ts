@@ -80,7 +80,7 @@ class Flowchart {
 
   // allocator of y-axis 
   // for 
-  // * arrow acrossing other branches that direction is W (West)
+  // * arrow crossing other branches that direction is W (West)
   // * rectangle or diamond or horizontal line etc...
   //
   // For Example
@@ -100,12 +100,12 @@ class Flowchart {
   //       | horizontal line       |       
   //       |                       |       
   //
-  // When renderring arrow from branch2 to West direction,
+  // When rendering arrow from branch2 to West direction,
   // We have to avoid the objects and the horizontal lines in branch1.
   AllocW: RangeAllocator;
 
   // allocator of y-axis 
-  // for arrow acrossing other branches
+  // for arrow crossing other branches
   // that direction is E (East).
   //
   // For Example
@@ -117,7 +117,7 @@ class Flowchart {
   //       |          |       
   //       |          |       
   //
-  // When renderring some object or horizontal line in branch2,
+  // When rendering some object or horizontal line in branch2,
   // We have to avoid the arrow.
   AllocE: RangeAllocator;
 
@@ -133,7 +133,7 @@ class Flowchart {
 
   // NOTE:
   // * "y" is the y-coordinate of end point.
-  // TODO: rename variable name to understand easliy.
+  // TODO: rename variable name to understand easily.
   x: number;
   y: number;
 
@@ -1090,7 +1090,7 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
   //   tryShapeGroup |       | |      | error1      | error2
   //               | |       | |      |             |
   //               | |       | |      v             v
-  //               | |       | |   +-----+       +-----+ exceptShapGroups
+  //               | |       | |   +-----+       +-----+ exceptShapeGroups
   //               | +-------+ |   |     |       |     |
   //               +-----+-----+   +--+--+       +--+--+
   //                     |            |             |
@@ -1101,7 +1101,7 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
 
   // NOTE:
   // to find starting point of exceptHline,
-  // we cannnot use createBlockFlowchart directory...
+  // we can not use createBlockFlowchart directory...
 
   const {dx, hlineMargin} = flowchart;
 
@@ -1216,7 +1216,7 @@ const createTryExceptFlowchart = (tryNode: ASTNode, exceptNodes: ASTNode[], flow
       .map(flowchart => flowchart.y)
       .reduce((prev, cur) => Math.max(prev, cur));
 
-    // find mergeHline's position
+    // find position of mergeHline
     const pos = flowchart.AllocE.findSpace(
       flowchartMaxY,
       hlineMargin
@@ -1365,7 +1365,7 @@ const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], fl
       )
   ) {
 
-    // find mergeHline's position
+    // find position of mergeHline
     const pos = flowchart.AllocE.findSpace(
       flowchartMaxY,
       hlineMargin
@@ -1393,7 +1393,7 @@ const createSwitchCaseFlowchart = (switchNode: ASTNode, caseNodes: ASTNode[], fl
     }));
   }
   
-  // NOTE: beceause of mergeHline,
+  // NOTE: because of mergeHline,
   // some flowchart might grow from previous flowchartMaxY
   const flowchartMaxY2 = caseFlowcharts
     .map(flowchart => flowchart.y)

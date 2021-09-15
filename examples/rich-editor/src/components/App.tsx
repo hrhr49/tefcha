@@ -22,10 +22,12 @@ import { RandomSrcMenu } from './RandomSrcMenu';
 import { CustomAppBar } from './CustomAppBar';
 
 import { FlowchartView } from './FlowchartView';
+import { DropFileArea } from './DropFileArea';
 
 import {
   downloadAsPNGFile,
   downloadAsSVGFile,
+  loadTefchaFile,
 } from '../utils';
 
 import {
@@ -102,6 +104,12 @@ const useStyles = makeStyles((theme: Theme) =>
       textAlign: 'center',
       color: theme.palette.text.secondary,
       height: '100%',
+    },
+    popper: {
+      padding: theme.spacing(2),
+      textAlign: 'center',
+      backgroundColor: theme.palette.background.paper,
+      border: '1px solid',
     },
     nested: {
       paddingLeft: theme.spacing(4),
@@ -244,111 +252,171 @@ svgRef, autoScaleType, flowchatViewWidth, flowchatViewHeight
     setSrc(createRandomSrcWithComment(param));
   }, [src, setSrc]);
 
+  const onDropFile = async (file: File) => {
+    try {
+      const tefchaData = await loadTefchaFile(file);
+      if (tefchaData.config) {
+        setTefchaConfig(tefchaData.config);
+      }
+      if (tefchaData.src) {
+        setSrc(tefchaData.src);
+      }
+    } catch(e) {
+      alert(e);
+    }
+  };
+
   const exportAsPNGFile = () => {
     if (svgRef.current !== null) {
-      downloadAsPNGFile(svgRef.current);
+      downloadAsPNGFile(
+        svgRef.current,
+        {
+          fileName: 'image.png',
+        }
+      );
     }
   };
 
   const exportAsSVGFile = () => {
     if (svgRef.current !== null) {
-      downloadAsSVGFile(svgRef.current);
+      downloadAsSVGFile(
+        svgRef.current,
+        {
+          fileName: 'image.svg',
+        }
+      );
+    }
+  };
+
+  const exportAsEditablePNGFile = () => {
+    if (svgRef.current !== null) {
+      downloadAsPNGFile(
+        svgRef.current,
+        {
+          fileName: 'image.tefcha.png',
+          metaData: {
+            config: tefchaConfig,
+            src,
+          }
+        }
+      );
+    }
+  };
+
+  const exportAsEditableSVGFile = () => {
+    if (svgRef.current !== null) {
+      downloadAsSVGFile(
+        svgRef.current,
+        {
+          fileName: 'image.tefcha.svg',
+          metaData: {
+            config: tefchaConfig,
+            src,
+          }
+        }
+      );
     }
   };
 
   return (
     <div className={classes.root}>
-      <CssBaseline />
-      <CustomAppBar
-        classes={classes}
-        flowchatScalePercent={flowchatScalePercent}
-        autoScaleType={autoScaleType}
-        onClickDrawerButton={toggleIsDrawerOpen}
-        onFlowcharScalePercentChange={setFlowchatScalePercent}
-        onAutoScaleTypeChange={setAutoScaleType}
-      />
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        anchor="left"
-        open={isDrawerOpen}
-        classes={{
-          paper: classes.drawerPaper,
-        }}
+      <DropFileArea
+          onDropFile={onDropFile}
       >
-        <List>
-          <ExportMenu
-            classes={classes}
-            exportAsPNGFile={exportAsPNGFile}
-            exportAsSVGFile={exportAsSVGFile}
-          />
-          <ThemeMenu
-            classes={classes}
-            onSelect={setTefchaConfig}
-          />
-          <ConfigMenu
-            classes={classes}
-            onSubmit={({formData}: any) => {setTefchaConfig(formData)}}
-            onChange={({formData, errors}: any) => {
-              if (errors.length === 0) {
-                setTefchaConfig(formData);
-              }
-            }}
-            onImport={(data: any) => {
-              setTefchaConfig(data);
-            }}
-            formData={tefchaConfig}
-          />
-          <RandomSrcMenu
-            classes={classes}
-            onRandomSrc={onRandomSrc}
-          />
-        </List>
-      </Drawer>
-      <main
-        className={clsx(classes.content, {
-        })}
-      >
-        <SplitPane
-          split="vertical"
-          minSize={10}
-          defaultSize={defaultEditorWidth}
-          style={{ height: flowchatViewHeight}}
-          onChange={setEditorWidth}
+        <CssBaseline />
+        <CustomAppBar
+          classes={classes}
+          flowchatScalePercent={flowchatScalePercent}
+          autoScaleType={autoScaleType}
+          onClickDrawerButton={toggleIsDrawerOpen}
+          onFlowcharScalePercentChange={setFlowchatScalePercent}
+          onAutoScaleTypeChange={setAutoScaleType}
+        />
+        <Drawer
+          className={classes.drawer}
+          variant="persistent"
+          anchor="left"
+          open={isDrawerOpen}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
         >
-          <Editor
-            value={src}
-            onChange={onSrcChange}
-            annotations={
-              errMsg ? [{
-                row: errLineNo,
-                column: 0,
-                type: 'error',
-                text: errMsg,
-                }] : []
-              }
+          <List>
+            <ExportMenu
+              classes={classes}
+              exportAsPNGFile={exportAsPNGFile}
+              exportAsSVGFile={exportAsSVGFile}
+              exportAsEditablePNGFile={exportAsEditablePNGFile}
+              exportAsEditableSVGFile={exportAsEditableSVGFile}
             />
-            <div style={{
-              overflow: 'scroll',
-              height: '100%',
-              width: flowchatViewWidth
+            <ThemeMenu
+              classes={classes}
+              onSelect={setTefchaConfig}
+            />
+            <ConfigMenu
+              classes={classes}
+              onSubmit={({formData}: any) => {setTefchaConfig(formData)}}
+              onChange={({formData, errors}: any) => {
+                if (errors.length === 0) {
+                  setTefchaConfig(formData);
+                }
               }}
-            >
-      
-              <FlowchartView
-                src={src}
-                svgRef={svgRef}
-                scalePercent={flowchatScalePercent}
-                autoScaleType={autoScaleType}
-                width={flowchatViewWidth}
-                height={flowchatViewHeight}
-                onTefchaError={onTefchaError}
-                onTefchaSuccess={onTefchaSuccess}
-                tefchaConfig={tefchaConfig}
+              onImport={(data: any) => {
+                setTefchaConfig(data);
+              }}
+              formData={tefchaConfig}
+            />
+            <RandomSrcMenu
+              classes={classes}
+              onRandomSrc={onRandomSrc}
+            />
+          </List>
+        </Drawer>
+        <main
+          className={clsx(classes.content, {
+          })}
+        >
+          <SplitPane
+            split="vertical"
+            minSize={10}
+            defaultSize={defaultEditorWidth}
+            style={{ height: flowchatViewHeight}}
+            onChange={setEditorWidth}
+          >
+            <Editor
+              value={src}
+              onChange={onSrcChange}
+              annotations={
+                errMsg ? [{
+                  row: errLineNo,
+                  column: 0,
+                  type: 'error',
+                  text: errMsg,
+                  }] : []
+                }
               />
-            </div>
-          </SplitPane>
-        </main>
+              <div style={{
+                overflow: 'scroll',
+                height: '100%',
+                width: flowchatViewWidth
+                }}
+              >
+        
+                <FlowchartView
+                  src={src}
+                  svgRef={svgRef}
+                  scalePercent={flowchatScalePercent}
+                  autoScaleType={autoScaleType}
+                  width={flowchatViewWidth}
+                  height={flowchatViewHeight}
+                  onTefchaError={onTefchaError}
+                  onTefchaSuccess={onTefchaSuccess}
+                  tefchaConfig={tefchaConfig}
+                />
+              </div>
+            </SplitPane>
+          </main>
+        </DropFileArea>
       </div>
   );
 }

@@ -13,9 +13,7 @@
     "dist/esm",
     "umd"
   ],
-  "dependencies": {
-    "jsonschema": "^1.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^26.0.10",
     "@types/node": "^14.0.23",

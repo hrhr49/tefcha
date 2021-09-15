@@ -213,7 +213,7 @@ const validateAST = (node: ASTNode, parents: ASTNode[], src: string): void => {
         // break;
       case 'switch':
         if (child.children.length === 0) {
-          throw new TefchaError({lineno, src, msg: 'switch blcok needs at least 1 case blocks'});
+          throw new TefchaError({lineno, src, msg: 'switch block needs at least 1 case blocks'});
         }
         break;
       case 'case':
