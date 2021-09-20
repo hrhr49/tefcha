@@ -66,13 +66,14 @@ interface ASTNode {
 interface LineInfo {
   lineno: number;
   line: string;
-  nest: number;
+  nest: string[];
 }
 
 const extractLineInfo = (src: string, config: Config): LineInfo[] => {
   let lineInfoList: LineInfo[] = [];
   let keptLine: string = ''; // string to keep line ends with '\'
-  const {indentStr, commentStr} = config.src;
+  const {commentStr} = config.src;
+  let prevNest: string[] = [];
 
   src.split(/\r\n|\r|\n/).forEach((line, lineno) => {
     // add 1 because lineno starts with 1
@@ -84,15 +85,8 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     // skip empty line
     if (line.trim() === '') return;
 
-    let nest = 0;
-    // count the number of indent
-    while (line.startsWith(indentStr)) {
-      nest++;
-      line = line.slice(indentStr.length);
-    }
-
     // skip comment
-    if (line.startsWith(commentStr)) return;
+    if (line.replace(/^[ \t]+/, '').startsWith(commentStr)) return;
 
     // if the line ends with '\', keep it.
     if (line.endsWith('\\')) {
@@ -100,12 +94,39 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
       return;
     }
 
+    const currentNest: string[] = [];
+
+    const indentMatch = /^[ \t]+/.exec(line);
+    if (indentMatch) {
+      let indentStr: string = indentMatch[0];
+
+      // remove indent from line
+      line = line.slice(indentStr.length);
+
+      while (indentStr.length > 0 && prevNest.length > 0) {
+        if (indentStr.startsWith(prevNest[0])) {
+          const indent: string = prevNest[0];
+          currentNest.push(indent);
+          indentStr = indentStr.slice(indent.length);
+          prevNest.shift();
+        } else {
+          throw new TefchaError({lineno, src, msg: 'unexpected indent'});
+        }
+      }
+      if (indentStr.length > 0) {
+        currentNest.push(indentStr);
+      }
+    }
+
+    // copy currentNest to prevNest
+    prevNest = [...currentNest];
+
     keptLine = '';
 
     lineInfoList.push({
       lineno,
       line,
-      nest,
+      nest: currentNest,
     });
   });
 
@@ -113,9 +134,10 @@ const extractLineInfo = (src: string, config: Config): LineInfo[] => {
     throw new TefchaError({msg: `EOF is found after '\\'`});
   }
 
-  // if all lines has same indent, remove it.
-  const minNest = Math.min(...lineInfoList.map(l => l.nest));
-  lineInfoList = lineInfoList.map(l => ({...l, nest: l.nest - minNest}));
+  // if all lines have same indent, remove the indent
+  if (lineInfoList.every((l) => l.nest.length > 0)) {
+    lineInfoList = lineInfoList.map((l) => ({...l, nest: l.nest.slice(1)}));
+  }
 
   return lineInfoList;
 };
@@ -131,12 +153,12 @@ const _parse = (lineInfoList: LineInfo[], src: string): ASTNode => {
 
   lineInfoList.forEach(({lineno, line, nest}) => {
     // if unexpected indent exists, throw error
-    if ((nodeStack.length - 1) < nest) {
+    if ((nodeStack.length - 1) < nest.length) {
       throw new TefchaError({lineno, src, msg: 'unexpected indent'});
     }
 
     // if unindent is found, pop nodes from parents stack
-    while ((nodeStack.length - 1) > nest) {
+    while ((nodeStack.length - 1) > nest.length) {
       nodeStack.pop();
     }
 
