@@ -1,6 +1,6 @@
 interface Config {
   src: {
-    readonly indentStr: string;
+    readonly indentStr?: string;
     readonly commentStr: string;
   };
 
@@ -56,7 +56,7 @@ const STROKE_COLOR = 'black';
 
 const defaultConfig: Config = {
   src: {
-    // indent need to be this string.
+    // NOTE: this config is not used and any indent is available now
     indentStr: '  ',
     // line starts with this character is skipped by parser.
     commentStr: '#',
